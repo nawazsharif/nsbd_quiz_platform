@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+API_DIR="$ROOT_DIR/api.quiz"
+
+echo "[pre-push] Running backend tests..."
+
+if [ -d "$API_DIR" ] && command -v php >/dev/null 2>&1; then
+  pushd "$API_DIR" >/dev/null
+  if [ -f artisan ]; then
+    echo "- api.quiz: php artisan test"
+    php artisan test || exit 1
+  fi
+  popd >/dev/null
+else
+  echo "- skip backend tests (dir or php missing)"
+fi
+
+echo "[pre-push] OK"
+

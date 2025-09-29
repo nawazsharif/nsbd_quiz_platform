@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+WEB_DIR="$ROOT_DIR/quiz"
+
+echo "[pre-commit] Running linters..."
+
+if [ -d "$WEB_DIR" ] && command -v npm >/dev/null 2>&1; then
+  pushd "$WEB_DIR" >/dev/null
+  if [ -f package.json ]; then
+    echo "- quiz: npm run lint"
+    npm run lint --silent || exit 1
+  fi
+  popd >/dev/null
+else
+  echo "- skip frontend lint (dir or npm missing)"
+fi
+
+echo "[pre-commit] OK"
+

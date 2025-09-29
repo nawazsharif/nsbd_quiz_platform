@@ -1,0 +1,290 @@
+erDiagram
+    users ||--o{ quizzes : "owns"
+    users ||--o{ quiz_attempts : "takes"
+    users ||--o{ attempt_answers : "grades (optional)"
+    users ||--o{ quiz_approvals : "submits/reviews"
+    users ||--o{ orders : "creates"
+    users ||--o{ enrollments : "enrolls"
+
+    categories ||--o{ quizzes : "categorizes"
+    categories ||--o{ courses : "categorizes"
+    categories ||--o{ categories : "parent_of"
+
+    quizzes ||--o{ questions : "has"
+    questions ||--o{ question_options : "has (MCQ)"
+    questions ||--o{ fill_blank_answers : "acceptable answers"
+
+    quizzes ||--o{ quiz_attempts : "receives"
+    quiz_attempts ||--o{ attempt_answers : "contains"
+
+    quizzes ||--o{ quiz_access_grants : "grants access"
+
+    quizzes ||--o{ quiz_approvals : "approval workflow"
+
+    orders ||--o{ order_items : "contains"
+
+    tags ||--o{ taggables : "tag of"
+    quizzes ||--o{ taggables : "taggable"
+    courses ||--o{ taggables : "taggable"
+    lessons ||--o{ taggables : "taggable"
+
+    courses ||--o{ course_sections : "has"
+    courses ||--o{ curriculum_items : "contains"
+    course_sections ||--o{ curriculum_items : "groups"
+
+    lessons ||--o{ curriculum_items : "as item when item_type=lesson"
+    quizzes ||--o{ curriculum_items : "as item when item_type=quiz"
+
+    courses ||--o{ enrollments : "has"
+    users ||--o{ progress : "tracks"
+    courses ||--o{ progress : "within course"
+    curriculum_items ||--o{ progress : "per item"
+
+    audits {
+        int id PK
+        int user_id FK
+        string auditable_type
+        int auditable_id
+        string action
+        json before_json
+        json after_json
+        datetime created_at
+    }
+
+    categories {
+        int id PK
+        string name
+        string slug UNIQUE
+        int parent_id FK
+        datetime created_at
+        datetime updated_at
+    }
+
+    quizzes {
+        int id PK
+        int owner_id FK
+        int category_id FK
+        string title
+        text description
+        string difficulty
+        boolean is_paid
+        int price_cents
+        string currency
+        int timer_seconds
+        boolean randomize_questions
+        boolean randomize_answers
+        boolean allow_multiple_attempts
+        int max_attempts
+        string visibility
+        string status
+        boolean requires_admin_approval
+        datetime approved_at
+        datetime published_at
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+
+    questions {
+        int id PK
+        int quiz_id FK
+        string type
+        int order_index
+        text text
+        text explanation
+        boolean multiple_correct
+        boolean correct_boolean
+        text text_with_blanks
+        text prompt
+        text sample_answer
+        int points
+        boolean requires_manual_grading
+        datetime created_at
+        datetime updated_at
+    }
+
+    question_options {
+        int id PK
+        int question_id FK
+        text text
+        boolean is_correct
+        int order_index
+        datetime created_at
+        datetime updated_at
+    }
+
+    fill_blank_answers {
+        int id PK
+        int question_id FK
+        text answer
+        boolean is_regex
+        boolean case_sensitive
+        datetime created_at
+        datetime updated_at
+    }
+
+    quiz_attempts {
+        int id PK
+        int quiz_id FK
+        int user_id FK
+        datetime started_at
+        datetime expires_at
+        datetime finished_at
+        int score
+        int auto_score
+        int manual_score
+        json question_order
+        json answer_order_map
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    attempt_answers {
+        int id PK
+        int attempt_id FK
+        int question_id FK
+        json answer_json
+        boolean is_final
+        boolean auto_correct
+        int auto_awarded_points
+        boolean requires_manual_grading
+        int manual_awarded_points
+        int grader_id FK
+        text grader_feedback
+        datetime created_at
+        datetime updated_at
+    }
+
+    quiz_access_grants {
+        int id PK
+        int quiz_id FK
+        int user_id FK
+        string source
+        datetime expires_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    quiz_approvals {
+        int id PK
+        int quiz_id FK
+        int submitted_by FK
+        int reviewed_by FK
+        string status
+        text reason
+        datetime created_at
+        datetime updated_at
+    }
+
+    orders {
+        int id PK
+        int user_id FK
+        string status
+        string currency
+        int subtotal_cents
+        int tax_cents
+        int total_cents
+        datetime paid_at
+        datetime created_at
+        datetime updated_at
+    }
+
+    order_items {
+        int id PK
+        int order_id FK
+        string purchasable_type
+        int purchasable_id
+        int quantity
+        int unit_price_cents
+        datetime created_at
+        datetime updated_at
+    }
+
+    tags {
+        int id PK
+        string name UNIQUE
+        string slug UNIQUE
+        datetime created_at
+        datetime updated_at
+    }
+
+    taggables {
+        int tag_id FK
+        string taggable_type
+        int taggable_id
+    }
+
+    courses {
+        int id PK
+        int owner_id FK
+        int category_id FK
+        string title
+        string subtitle
+        text description
+        string difficulty
+        boolean is_paid
+        int price_cents
+        string currency
+        string status
+        boolean requires_admin_approval
+        datetime approved_at
+        datetime published_at
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+
+    course_sections {
+        int id PK
+        int course_id FK
+        string title
+        int order_index
+        datetime created_at
+        datetime updated_at
+    }
+
+    lessons {
+        int id PK
+        int owner_id FK
+        string title
+        string content_type
+        json content
+        int duration_seconds
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+    }
+
+    curriculum_items {
+        int id PK
+        int course_id FK
+        int section_id FK
+        string item_type
+        int item_id
+        int order_index
+        boolean is_required
+        datetime created_at
+        datetime updated_at
+    }
+
+    enrollments {
+        int id PK
+        int course_id FK
+        int user_id FK
+        string source
+        datetime created_at
+        datetime updated_at
+    }
+
+    progress {
+        int id PK
+        int user_id FK
+        int course_id FK
+        int curriculum_item_id FK
+        string status
+        datetime completed_at
+        datetime last_activity_at
+        datetime created_at
+        datetime updated_at
+    }
