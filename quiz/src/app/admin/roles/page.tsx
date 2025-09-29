@@ -57,7 +57,7 @@ export default function RolesPage() {
     try {
       const rp = await authAPI.getRolePermissions(role.id as any, token)
       const list = Array.isArray(rp) ? rp : (rp as any)?.permissions || []
-      const names = Array.from(new Set(list.map((x: any) => x?.name || x?.permission || x)))
+      const names = Array.from(new Set(list.map((x: any) => x?.name || x?.permission || x))).filter((name): name is string => typeof name === 'string')
       setAssigned(names)
     } catch (e: any) {
       setAssigned([])

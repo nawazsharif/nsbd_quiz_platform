@@ -450,24 +450,15 @@ export default function TakeQuizPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Correct Answers:</span>
-                    <span className="text-sm text-gray-900">
-                      {existingAttempt.correct_answers || 0}/{existingAttempt.total_questions || 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Time Spent:</span>
-                    <span className="text-sm text-gray-900">
-                      {existingAttempt.time_spent_seconds ?
-                        `${Math.floor(existingAttempt.time_spent_seconds / 60)}:${String(existingAttempt.time_spent_seconds % 60).padStart(2, '0')}` :
-                        'N/A'
-                      }
+                    <span className="text-sm text-gray-600">Status:</span>
+                    <span className="text-sm text-gray-900 capitalize">
+                      {existingAttempt.status}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Completed:</span>
+                    <span className="text-sm text-gray-600">Started:</span>
                     <span className="text-sm text-gray-900">
-                      {new Date(existingAttempt.completed_at || existingAttempt.created_at).toLocaleDateString()}
+                      {new Date(existingAttempt.startedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

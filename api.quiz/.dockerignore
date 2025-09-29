@@ -1,0 +1,37 @@
+# Ignore files and directories for Docker build context
+node_modules
+npm-debug.log*
+.npm
+.env
+.env.*
+.gitignore
+.git
+.DS_Store
+
+# Laravel specific
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+!storage/app/.gitkeep
+!storage/framework/.gitkeep
+!storage/framework/cache/.gitkeep
+!storage/framework/sessions/.gitkeep
+!storage/framework/views/.gitkeep
+!storage/logs/.gitkeep
+
+# Development files
+*.md
+.phpunit.result.cache
+phpunit.xml
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+tests/
+coverage/

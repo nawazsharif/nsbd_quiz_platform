@@ -67,7 +67,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 };
 
 // Prefer explicit API URL when provided; fallback to proxy path
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/backend'
+const API_BASE_URL = 'http://backend/api'
 
 // Custom user type
 export interface CustomUser {
@@ -90,7 +90,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         console.log('NextAuth authorize called with:', { email: credentials?.email });
-        
+
         if (!credentials?.email || !credentials?.password) {
           console.log('Missing credentials');
           return null;
@@ -98,7 +98,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           console.log('Calling Laravel API at:', `${API_BASE_URL}/auth/login`);
-          
+
           // Call Laravel API for authentication
           const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
@@ -121,7 +121,7 @@ export const authOptions: NextAuthOptions = {
 
           const data = await response.json();
           console.log('Laravel API response data:', data);
-          
+
           const rawUser = data?.user || data?.data?.user;
           const rawToken = data?.token || data?.data?.token;
 
@@ -174,7 +174,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account }) {
       console.log('NextAuth signIn callback called with:', { user, account });
-      
+
       // Handle OAuth providers
       if (account?.provider === 'google' || account?.provider === 'facebook') {
         console.log('Handling OAuth provider:', account.provider);
@@ -286,7 +286,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
-  
+
   // Add debug configuration
   debug: process.env.NODE_ENV === 'development',
 };

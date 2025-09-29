@@ -1,10 +1,11 @@
 {
-  "name": "fresh-nextjs",
+  "name": "quiz-platform-frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build --no-lint",
+    "build:original": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
   },

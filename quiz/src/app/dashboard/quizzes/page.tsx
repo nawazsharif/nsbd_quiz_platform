@@ -193,7 +193,7 @@ export default function MyQuizzesPage() {
                     })()}
                     {(() => {
                       const status: string = (q.status || (q.published ? 'published' : 'draft')) as string
-                      const isSuperAdmin = user?.role === 'super_admin' || user?.role === 'superadmin'
+                      const isSuperAdmin = user?.role === 'super_admin'
                       const canDelete = (isOwner(q) && status !== 'published') || isSuperAdmin
                       if (!canDelete) return null
                       return (

@@ -60,36 +60,8 @@ class CourseEnrollmentController extends Controller
 
     /**
      * Enroll in a course.
-     *
-     * @OA\Post(
-     *     path="/api/courses/{course}/enroll",
-     *     tags={"Course Enrollments"},
-     *     summary="Enroll in a course",
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="course",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successfully enrolled",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="enrollment", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=400,
-     *         description="Already enrolled or course not available"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Course not found"
-     *     )
-     * )
+     * Note: This method is not directly exposed as an API endpoint.
+     * The actual enrollment endpoint is handled by CoursePurchaseController.
      */
     public function enroll(Request $request, Course $course): JsonResponse
     {
@@ -166,7 +138,7 @@ class CourseEnrollmentController extends Controller
         }
 
         $overallProgress = CourseProgress::getCourseProgress($request->user()->id, $course->id);
-        
+
         $contentProgress = CourseProgress::with('courseContent')
             ->where('user_id', $request->user()->id)
             ->where('course_id', $course->id)
@@ -316,7 +288,7 @@ class CourseEnrollmentController extends Controller
     public function checkEnrollment(Request $request, Course $course): JsonResponse
     {
         $user = $request->user();
-        
+
         // Check if user is course owner, admin, or superadmin - they have automatic access
         if ($course->owner_id === $user->id || $user->hasAnyRole(['admin', 'superadmin'])) {
             return response()->json([

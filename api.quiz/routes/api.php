@@ -43,6 +43,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// Health check endpoint for Docker
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toISOString(),
+        'service' => 'quiz-platform-api'
+    ]);
+});
+
 // Authentication routes (public)
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);

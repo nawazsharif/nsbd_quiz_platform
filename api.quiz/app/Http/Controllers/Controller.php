@@ -17,7 +17,7 @@ use Illuminate\Routing\Controller as BaseController;
  * )
  *
  * @OA\Server(
- *     url="http://api.quiz.test",
+ *     url="http://localhost:8000",
  *     description="Local development server"
  * )
  *

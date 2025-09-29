@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
 import { QuizAttemptSummary, AttemptStatistics } from '@/types/quiz-attempt'
-import { 
-  Clock, 
-  Trophy, 
-  Calendar, 
-  Target, 
-  TrendingUp, 
+import {
+  Clock,
+  Trophy,
+  Calendar,
+  Target,
+  TrendingUp,
   BarChart3,
   CheckCircle,
   XCircle,
@@ -32,12 +32,12 @@ interface AttemptHistoryProps {
   className?: string
 }
 
-export default function AttemptHistory({ 
-  userId, 
-  quizId, 
-  limit, 
+export default function AttemptHistory({
+  userId,
+  quizId,
+  limit,
   showStatistics = true,
-  className = '' 
+  className = ''
 }: AttemptHistoryProps) {
   const { data: session } = useSession()
   const [attempts, setAttempts] = useState<QuizAttemptSummary[]>([])
@@ -60,7 +60,7 @@ export default function AttemptHistory({
     try {
       setLoading(true)
       setError(null)
-      
+
       if (!(session as any)?.accessToken) {
         throw new Error('No authentication token available')
       }
@@ -74,7 +74,7 @@ export default function AttemptHistory({
         (session as any).accessToken,
         quizId ? parseInt(quizId) : undefined
       )
-      
+
       setAttempts(attempts || [])
     } catch (err) {
       console.error('Failed to fetch quiz attempts:', err)
@@ -95,7 +95,7 @@ export default function AttemptHistory({
         (session as any).accessToken,
         quizId ? parseInt(quizId) : undefined
       )
-      
+
       setStatistics(stats)
     } catch (err) {
       console.error('Failed to fetch attempt statistics:', err)
@@ -161,7 +161,7 @@ export default function AttemptHistory({
     })
     .sort((a, b) => {
       let comparison = 0
-      
+
       switch (sortBy) {
         case 'date':
           comparison = new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
@@ -175,7 +175,7 @@ export default function AttemptHistory({
           comparison = a.timeSpent - b.timeSpent
           break
       }
-      
+
       return sortOrder === 'asc' ? comparison : -comparison
     })
 
@@ -247,7 +247,7 @@ export default function AttemptHistory({
                 <Target className="w-8 h-8 text-blue-500" />
               </div>
             </div>
-            
+
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -257,7 +257,7 @@ export default function AttemptHistory({
                 <CheckCircle className="w-8 h-8 text-green-500" />
               </div>
             </div>
-            
+
             <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -267,7 +267,7 @@ export default function AttemptHistory({
                 <Trophy className="w-8 h-8 text-yellow-500" />
               </div>
             </div>
-            
+
             <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -292,7 +292,7 @@ export default function AttemptHistory({
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          
+
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
@@ -303,7 +303,7 @@ export default function AttemptHistory({
             <option value="in_progress">In Progress</option>
             <option value="abandoned">Abandoned</option>
           </select>
-          
+
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
@@ -323,8 +323,8 @@ export default function AttemptHistory({
             <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Attempts Found</h3>
             <p className="text-gray-600">
-              {searchTerm || filter !== 'all' 
-                ? 'Try adjusting your filters or search terms.' 
+              {searchTerm || filter !== 'all'
+                ? 'Try adjusting your filters or search terms.'
                 : 'Start taking quizzes to see your attempt history here.'}
             </p>
           </div>
@@ -337,16 +337,16 @@ export default function AttemptHistory({
               >
                 <div className="flex items-center space-x-4 flex-1">
                   {getStatusIcon(attempt.status)}
-                  
+
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-gray-900 truncate">{attempt.quizTitle}</h4>
                     <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
                       <span className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(attempt.startedAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
+                        {new Date(attempt.startedAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
                         })}
                       </span>
                       <span className="flex items-center">
@@ -380,9 +380,7 @@ export default function AttemptHistory({
                         const rawCompletion =
                           typeof attempt.completionPercentage === 'number'
                             ? attempt.completionPercentage
-                            : typeof attempt.progress?.completionPercentage === 'number'
-                              ? attempt.progress.completionPercentage
-                              : 0;
+                            : 0;
 
                         const completion = Number.isFinite(rawCompletion) ? rawCompletion : 0;
 

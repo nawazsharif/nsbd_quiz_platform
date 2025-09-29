@@ -4,6 +4,9 @@ import { Providers } from "@/components/Providers";
 import NavigationLayout from "@/components/navigation/NavigationLayout";
 import "./globals.css";
 
+// Force all pages to be dynamic to avoid static generation issues
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],

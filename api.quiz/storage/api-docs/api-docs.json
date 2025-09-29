@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://api.quiz.test",
+            "url": "http://localhost:8000",
             "description": "Local development server"
         }
     ],
@@ -556,6 +556,189 @@
                 ]
             }
         },
+        "/api/bookmarks": {
+            "get": {
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Get user's bookmarked quizzes",
+                "description": "Display a listing of the user's bookmarked quizzes.",
+                "operationId": "233ed23d9346fff85a0b94fd45e34647",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of bookmarked quizzes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/QuizBookmark"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/bookmarks/toggle/{quiz}": {
+            "post": {
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Toggle bookmark for a quiz",
+                "description": "Toggle bookmark status for a quiz.",
+                "operationId": "14a482c18337f75b3e877887cd221b32",
+                "parameters": [
+                    {
+                        "name": "quiz",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bookmark toggled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "bookmarked": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/bookmarks/check/{quiz}": {
+            "get": {
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Check if quiz is bookmarked",
+                "description": "Check if a quiz is bookmarked by the current user.",
+                "operationId": "80386120d84f90eab0742a23a1f97156",
+                "parameters": [
+                    {
+                        "name": "quiz",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bookmark status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "bookmarked": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/bookmarks/{quiz}": {
+            "delete": {
+                "tags": [
+                    "Bookmarks"
+                ],
+                "summary": "Remove bookmark for a quiz",
+                "description": "Remove a bookmark.",
+                "operationId": "7732155e701b84280db05d049a3fc071",
+                "parameters": [
+                    {
+                        "name": "quiz",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bookmark removed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz not found or not bookmarked"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
@@ -791,6 +974,189 @@
                 ]
             }
         },
+        "/api/course-bookmarks": {
+            "get": {
+                "tags": [
+                    "Course Bookmarks"
+                ],
+                "summary": "Get user's bookmarked courses",
+                "description": "Display a listing of the user's bookmarked courses.",
+                "operationId": "5a474cbac834a65f878525044cb6209c",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of bookmarked courses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/CourseBookmark"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/course-bookmarks/toggle/{course}": {
+            "post": {
+                "tags": [
+                    "Course Bookmarks"
+                ],
+                "summary": "Toggle bookmark for a course",
+                "description": "Toggle bookmark status for a course.",
+                "operationId": "b3686d1ad547a6fc0d5b02e311fa750f",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bookmark toggled successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "bookmarked": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Course not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/course-bookmarks/check/{course}": {
+            "get": {
+                "tags": [
+                    "Course Bookmarks"
+                ],
+                "summary": "Check if course is bookmarked",
+                "description": "Check if a course is bookmarked by the current user.",
+                "operationId": "52cfbb9753a6c2e73967b3f93d10c444",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bookmark status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "bookmarked": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Course not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/course-bookmarks/{course}": {
+            "delete": {
+                "tags": [
+                    "Course Bookmarks"
+                ],
+                "summary": "Remove bookmark for a course",
+                "description": "Remove a bookmark.",
+                "operationId": "53a5f47f8728d618ace0b0519cb877f9",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bookmark removed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Course not found or not bookmarked"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/courses/{course}/contents": {
             "get": {
                 "tags": [
@@ -885,6 +1251,41 @@
             }
         },
         "/api/courses/{course}/contents/{content}": {
+            "get": {
+                "tags": [
+                    "Course Contents"
+                ],
+                "summary": "Show content",
+                "operationId": "a23580a8186a696389c1bf47396ff873",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "content",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Course Contents"
@@ -1128,6 +1529,243 @@
                 "responses": {
                     "200": {
                         "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/course-enrollments": {
+            "get": {
+                "tags": [
+                    "Course Enrollments"
+                ],
+                "summary": "Get user's course enrollments",
+                "description": "Get user's course enrollments with progress.",
+                "operationId": "fffdbc63b3701869c846e63389f2fd2c",
+                "responses": {
+                    "200": {
+                        "description": "List of user's course enrollments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "course": {
+                                                        "type": "object"
+                                                    },
+                                                    "progress": {
+                                                        "type": "object"
+                                                    },
+                                                    "enrolled_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/courses/{course}/progress": {
+            "get": {
+                "tags": [
+                    "Course Enrollments"
+                ],
+                "summary": "Get course progress",
+                "description": "Get course progress for the current user.",
+                "operationId": "4e5b1504854be592d2a38a758da62bd9",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Course progress data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "progress": {
+                                            "type": "object"
+                                        },
+                                        "content_progress": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Not enrolled in course"
+                    },
+                    "404": {
+                        "description": "Course not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/courses/{course}/content/{content}/progress": {
+            "post": {
+                "tags": [
+                    "Course Enrollments"
+                ],
+                "summary": "Update content progress",
+                "description": "Update progress for a specific course content.",
+                "operationId": "39c4f97595912a693ec76fdb1968682b",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "content",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "progress_percentage": {
+                                        "type": "integer",
+                                        "maximum": 100,
+                                        "minimum": 0
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "not_started",
+                                            "in_progress",
+                                            "completed"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Progress updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "progress": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Not enrolled in course"
+                    },
+                    "404": {
+                        "description": "Course or content not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/courses/{course}/enrollment-status": {
+            "get": {
+                "tags": [
+                    "Course Enrollments"
+                ],
+                "summary": "Check if user is enrolled in course",
+                "description": "Check enrollment status for a course.",
+                "operationId": "daa4260e9ab03754c3e39103c8012221",
+                "parameters": [
+                    {
+                        "name": "course",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Enrollment status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "enrolled": {
+                                            "type": "boolean"
+                                        },
+                                        "enrollment": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Course not found"
                     }
                 },
                 "security": [
@@ -2079,7 +2717,92 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Quiz"
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Algebra Fundamentals"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "difficulty": {
+                                        "type": "string",
+                                        "enum": [
+                                            "easy",
+                                            "medium",
+                                            "hard"
+                                        ],
+                                        "example": "medium"
+                                    },
+                                    "is_paid": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "price_cents": {
+                                        "type": "integer",
+                                        "example": 0,
+                                        "nullable": true
+                                    },
+                                    "timer_seconds": {
+                                        "type": "integer",
+                                        "example": 900,
+                                        "nullable": true
+                                    },
+                                    "randomize_questions": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "randomize_answers": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "allow_multiple_attempts": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "max_attempts": {
+                                        "type": "integer",
+                                        "example": 3,
+                                        "nullable": true
+                                    },
+                                    "visibility": {
+                                        "type": "string",
+                                        "enum": [
+                                            "public",
+                                            "private"
+                                        ],
+                                        "example": "public"
+                                    },
+                                    "negative_marking": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "negative_mark_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 0.5,
+                                        "nullable": true
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "math",
+                                            "assessment"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
@@ -2140,7 +2863,73 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Quiz"
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "difficulty": {
+                                        "type": "string",
+                                        "enum": [
+                                            "easy",
+                                            "medium",
+                                            "hard"
+                                        ]
+                                    },
+                                    "is_paid": {
+                                        "type": "boolean"
+                                    },
+                                    "price_cents": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "timer_seconds": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "randomize_questions": {
+                                        "type": "boolean"
+                                    },
+                                    "randomize_answers": {
+                                        "type": "boolean"
+                                    },
+                                    "allow_multiple_attempts": {
+                                        "type": "boolean"
+                                    },
+                                    "max_attempts": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "visibility": {
+                                        "type": "string",
+                                        "enum": [
+                                            "public",
+                                            "private"
+                                        ]
+                                    },
+                                    "negative_marking": {
+                                        "type": "boolean"
+                                    },
+                                    "negative_mark_value": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
@@ -2175,6 +2964,187 @@
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/quiz-enrollments": {
+            "get": {
+                "tags": [
+                    "Quiz Enrollments"
+                ],
+                "summary": "Get user's quiz enrollments",
+                "description": "Get all quiz enrollments for the authenticated user.",
+                "operationId": "23e1f5fc54db9783314b5a6a33980626",
+                "responses": {
+                    "200": {
+                        "description": "List of quiz enrollments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/quizzes/{quiz}/enrollment-status": {
+            "get": {
+                "tags": [
+                    "Quiz Enrollments"
+                ],
+                "summary": "Check if user is enrolled in quiz",
+                "description": "Check enrollment status for a quiz.",
+                "operationId": "673004cc7eef9659af0d40ac3c394335",
+                "parameters": [
+                    {
+                        "name": "quiz",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Enrollment status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "enrolled": {
+                                            "type": "boolean"
+                                        },
+                                        "enrollment": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/quizzes/{quiz}/ranking": {
+            "get": {
+                "tags": [
+                    "Quiz Rankings"
+                ],
+                "summary": "Get quiz ranking/leaderboard",
+                "description": "Get quiz ranking/leaderboard for a specific quiz.",
+                "operationId": "c907bed154570ff404573e6400d58ffd",
+                "parameters": [
+                    {
+                        "name": "quiz",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Quiz ranking data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "quiz": {
+                                            "type": "object"
+                                        },
+                                        "ranking": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total_participants": {
+                                            "type": "integer"
+                                        },
+                                        "user_rank": {
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quiz not found"
+                    }
+                }
+            }
+        },
+        "/api/user/quiz-rankings": {
+            "get": {
+                "tags": [
+                    "Quiz Rankings"
+                ],
+                "summary": "Get user's quiz rankings",
+                "description": "Get user's ranking across all quizzes.",
+                "operationId": "88f92c07f76f38c3a6bf8baf3bd079fd",
+                "responses": {
+                    "200": {
+                        "description": "User's quiz rankings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -3459,6 +4429,66 @@
                 }
             }
         },
+        "/api/uploads": {
+            "post": {
+                "tags": [
+                    "Uploads"
+                ],
+                "summary": "Upload an image",
+                "operationId": "3db2bedfa87142cb789da8b4bfb2db07",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "description": "Image file to upload",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "url": {
+                                            "type": "string"
+                                        },
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "mime": {
+                                            "type": "string"
+                                        },
+                                        "size": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -3993,6 +5023,39 @@
     },
     "components": {
         "schemas": {
+            "QuizBookmark": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Permission"
+                    },
+                    {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "user_id": {
+                                "type": "integer"
+                            },
+                            "quiz_id": {
+                                "type": "integer"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "quiz": {
+                                "$ref": "#/components/schemas/Quiz"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
             "Category": {
                 "type": "object",
                 "allOf": [
@@ -4021,6 +5084,39 @@
                             "updated_at": {
                                 "type": "string",
                                 "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "CourseBookmark": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Permission"
+                    },
+                    {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "user_id": {
+                                "type": "integer"
+                            },
+                            "course_id": {
+                                "type": "integer"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "course": {
+                                "$ref": "#/components/schemas/Course"
                             }
                         },
                         "type": "object"
@@ -4293,6 +5389,20 @@
                                     "published"
                                 ]
                             },
+                            "negative_marking": {
+                                "type": "boolean"
+                            },
+                            "negative_mark_value": {
+                                "type": "number",
+                                "format": "float",
+                                "nullable": true
+                            },
+                            "tags": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Tag"
+                                }
+                            },
                             "created_at": {
                                 "type": "string",
                                 "format": "date-time"
@@ -4300,6 +5410,28 @@
                             "updated_at": {
                                 "type": "string",
                                 "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "Tag": {
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Permission"
+                    },
+                    {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
                             }
                         },
                         "type": "object"
@@ -4662,8 +5794,16 @@
             "description": "Authentication endpoints for login, register, logout, and profile management"
         },
         {
+            "name": "Bookmarks",
+            "description": "Quiz bookmark management"
+        },
+        {
             "name": "Categories",
             "description": "Category management endpoints"
+        },
+        {
+            "name": "Course Bookmarks",
+            "description": "Course bookmark management"
         },
         {
             "name": "Course Contents",
@@ -4672,6 +5812,10 @@
         {
             "name": "Courses",
             "description": "Course management"
+        },
+        {
+            "name": "Course Enrollments",
+            "description": "API endpoints for course enrollment and progress tracking"
         },
         {
             "name": "Course Purchase",
@@ -4698,6 +5842,14 @@
             "description": "Quiz management"
         },
         {
+            "name": "Quiz Enrollments",
+            "description": "API endpoints for quiz enrollment status checking"
+        },
+        {
+            "name": "Quiz Rankings",
+            "description": "API endpoints for quiz rankings and leaderboards"
+        },
+        {
             "name": "Reviews",
             "description": "Quiz reviews (paid quizzes only)"
         },
@@ -4712,6 +5864,10 @@
         {
             "name": "Social Authentication",
             "description": "Social authentication endpoints for Google, GitHub, and Facebook login"
+        },
+        {
+            "name": "Uploads",
+            "description": "Media upload endpoints"
         },
         {
             "name": "Users",

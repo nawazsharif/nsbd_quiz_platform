@@ -8,12 +8,26 @@ import { PERMISSIONS } from '@/lib/auth'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
 
+interface Course {
+  id: number
+  title: string
+  visibility?: string
+  is_paid: boolean
+  price_cents?: number
+  status?: string
+  created_at?: string
+}
+
+interface SessionWithToken {
+  accessToken?: string
+}
+
 export default function CourseApprovalsPage() {
   const { user } = useAuth()
   const { hasPermission, isLoading } = usePermissions()
   const { data: session } = useSession()
-  const token = (session as any)?.accessToken as string | undefined
-  const [items, setItems] = useState<any[]>([])
+  const token = (session as SessionWithToken)?.accessToken
+  const [items, setItems] = useState<Course[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -23,11 +37,12 @@ export default function CourseApprovalsPage() {
     setError('')
     try {
       const res = await authAPI.getCourses(1, 200, 'submitted')
-      const list = (res?.data?.data ?? res?.data ?? res) as any
-      const all: any[] = (Array.isArray(list?.data) ? list.data : Array.isArray(list) ? list : [])
+      const list = res?.data?.data ?? res?.data ?? res
+      const all: Course[] = (Array.isArray(list?.data) ? list.data : Array.isArray(list) ? list : [])
       setItems(all)
-    } catch(e:any){
-      setError(e.message || 'Failed to load courses')
+    } catch(e: unknown){
+      const errorMessage = e instanceof Error ? e.message : 'Failed to load courses'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -93,7 +108,14 @@ export default function CourseApprovalsPage() {
                     onClick={async ()=>{
                       if (!token) return
                       setError(''); setNotice('')
-                      try { await authAPI.approveCourse(token, c.id); setItems(prev=>prev.filter(it=>it.id!==c.id)); setNotice('Course approved') } catch(e:any){ setError(e.message||'Failed to approve') }
+                      try {
+                        await authAPI.approveCourse(token, c.id)
+                        setItems(prev=>prev.filter(it=>it.id!==c.id))
+                        setNotice('Course approved')
+                      } catch(e: unknown){
+                        const errorMessage = e instanceof Error ? e.message : 'Failed to approve'
+                        setError(errorMessage)
+                      }
                     }}
                     className="h-8 px-3 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
                   >Approve</button>
@@ -102,7 +124,14 @@ export default function CourseApprovalsPage() {
                       if (!token) return
                       const reason = window.prompt('Rejection reason (optional)') || undefined
                       setError(''); setNotice('')
-                      try { await authAPI.rejectCourse(token, c.id, reason); setItems(prev=>prev.filter(it=>it.id!==c.id)); setNotice('Course rejected') } catch(e:any){ setError(e.message||'Failed to reject') }
+                      try {
+                        await authAPI.rejectCourse(token, c.id, reason)
+                        setItems(prev=>prev.filter(it=>it.id!==c.id))
+                        setNotice('Course rejected')
+                      } catch(e: unknown){
+                        const errorMessage = e instanceof Error ? e.message : 'Failed to reject'
+                        setError(errorMessage)
+                      }
                     }}
                     className="h-8 px-3 rounded-md border text-gray-900 hover:bg-gray-50"
                   >Reject</button>
@@ -115,4 +144,3 @@ export default function CourseApprovalsPage() {
     </div>
   )
 }
-

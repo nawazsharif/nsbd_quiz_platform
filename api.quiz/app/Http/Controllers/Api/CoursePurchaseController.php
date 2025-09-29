@@ -21,7 +21,10 @@ class CoursePurchaseController extends Controller
     }
 
     /**
-     * @OA\Post(path="/api/courses/{course}/enroll", tags={"Course Purchase"}, summary="Enroll free or purchase paid course",
+     * @OA\Post(
+     *   path="/api/courses/{course}/enroll",
+     *   tags={"Course Purchase"},
+     *   summary="Enroll free or purchase paid course",
      *   security={{"sanctum":{}}},
      *   @OA\Parameter(name="course", in="path", required=true, @OA\Schema(type="integer")),
      *   @OA\Response(response=200, description="OK")
@@ -30,7 +33,7 @@ class CoursePurchaseController extends Controller
     public function enrollOrPurchase(Request $request, Course $course)
     {
         $user = $request->user();
-        
+
         // Check if user is course owner, admin, or superadmin - they have automatic access
         if ($course->owner_id === $user->id || $user->hasAnyRole(['admin', 'superadmin'])) {
             // No enrollment record needed for owners/admins, they have automatic access
@@ -89,4 +92,3 @@ class CoursePurchaseController extends Controller
         return response()->json(['status' => 'purchased', 'author_credited_cents' => $authorShare, 'platform_revenue_cents' => $platformShare]);
     }
 }
-
