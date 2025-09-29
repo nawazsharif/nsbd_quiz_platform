@@ -86,7 +86,7 @@ services:
       - NEXTAUTH_URL=http://localhost:3000
       - NEXTAUTH_SECRET=dev-secret-key-change-in-production
       - API_PROXY_TARGET=http://backend:80
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://backend/api
     volumes:
       - ./quiz:/app
       - /app/node_modules
@@ -103,4 +103,3 @@ networks:
 volumes:
   mysql_dev_data:
   redis_dev_data:
-

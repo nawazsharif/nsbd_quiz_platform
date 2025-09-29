@@ -67,7 +67,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 };
 
 // Prefer explicit API URL when provided; fallback to proxy path
-const API_BASE_URL = 'http://backend/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
 // Custom user type
 export interface CustomUser {
