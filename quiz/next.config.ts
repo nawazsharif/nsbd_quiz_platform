@@ -1,14 +1,14 @@
 import type { NextConfig } from 'next'
 
-const API_PROXY_TARGET = process.env.API_PROXY_TARGET || 'http://api.quiz.test'
+const API_PROXY_TARGET = process.env.API_PROXY_TARGET || 'http://localhost:8000'
 
 const nextConfig: NextConfig = {
-  // Temporarily disable standalone output for deployment
-  // output: 'standalone',
+  // Enable standalone output so the Docker image can run via server.js
+  output: 'standalone',
 
   // Force all pages to be dynamic to prevent static generation issues
   experimental: {
-    dynamicIO: false,
+    cacheComponents: false,
   },
 
   // Completely disable static generation during build

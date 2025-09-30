@@ -1,23 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import NavigationLayout from "@/components/navigation/NavigationLayout";
 import "./globals.css";
 
 // Force all pages to be dynamic to avoid static generation issues
 export const dynamic = 'force-dynamic';
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Education Portal",
@@ -31,9 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
-      >
+      <body className="font-sans antialiased">
         <Providers>
           <NavigationLayout>
             {children}

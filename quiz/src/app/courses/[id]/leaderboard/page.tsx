@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Trophy, Medal, Crown, User } from 'lucide-react';
+import { buildApiUrl, getApiBaseUrl } from '@/lib/apiBase';
 
 type LeaderboardEntry = {
   user_id: number;
@@ -12,7 +13,7 @@ type LeaderboardEntry = {
   score?: number;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/backend';
+const API_BASE_URL = getApiBaseUrl();
 
 export default function CourseLeaderboardPage() {
   const params = useParams();
@@ -25,7 +26,7 @@ export default function CourseLeaderboardPage() {
     let mounted = true;
     async function run() {
       try {
-        const res = await fetch(`${API_BASE_URL}/courses/${id}/leaderboard`);
+        const res = await fetch(buildApiUrl(`/courses/${id}/leaderboard`));
         if (!res.ok) throw new Error('Not available');
         const data = await res.json();
         if (mounted) {

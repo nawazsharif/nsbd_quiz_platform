@@ -30,14 +30,18 @@ export default function CategoriesPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await authAPI.getCategories(undefined, page, 50, search || undefined)
+      if (!token) {
+        throw new Error('Session expired. Please sign in again to manage categories.')
+      }
+
+      const res = await authAPI.getCategories(token, page, 50, search || undefined)
       const list = (res?.data || res?.data?.data || res?.data?.data || res?.data) ?? res
       setItems((list?.data ?? list) as Category[])
       const meta = res?.meta || {}
       setTotal(meta.total || (list?.data ?? list)?.length || 0)
       // For parent select (first page fetch all up to 500)
       try {
-        const all = await authAPI.getCategories(undefined, 1, 500)
+        const all = await authAPI.getCategories(token, 1, 500)
         const flat = ((all?.data?.data ?? all?.data) ?? all) as any
         setAllCategories((flat?.data ?? flat) as Category[])
       } catch {}
@@ -48,7 +52,7 @@ export default function CategoriesPage() {
     }
   }
 
-  useEffect(() => { load() }, [page])
+  useEffect(() => { if (token) load() }, [page, token])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

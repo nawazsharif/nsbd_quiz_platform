@@ -4,6 +4,7 @@ npm-debug.log*
 .npm
 .env
 .env.*
+!.env.example
 .gitignore
 .git
 .DS_Store

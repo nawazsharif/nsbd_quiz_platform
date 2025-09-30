@@ -1,8 +1,9 @@
 'use client';
 
 import { getSession } from 'next-auth/react';
+import { buildApiUrl, getApiBaseUrl } from '@/lib/apiBase';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/backend';
+const API_BASE_URL = getApiBaseUrl();
 
 export interface Course {
   id: number;
@@ -48,7 +49,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 export const coursesAPI = {
   async list(params?: { page?: number; per_page?: number; status?: string }): Promise<Paginated<Course>> {
-    const url = new URL(`${API_BASE_URL}/courses`, window.location.origin);
+    const url = new URL(buildApiUrl('/courses'), window.location.origin);
     if (params?.page) url.searchParams.set('page', String(params.page));
     if (params?.per_page) url.searchParams.set('per_page', String(params.per_page));
     if (params?.status) url.searchParams.set('status', params.status);
@@ -59,7 +60,7 @@ export const coursesAPI = {
   },
 
   async get(courseId: number | string): Promise<Course> {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}`);
+    const res = await fetch(buildApiUrl(`/courses/${courseId}`));
     const data = await res.json();
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch course');
     return data as Course;
@@ -67,7 +68,7 @@ export const coursesAPI = {
 
   async enroll(courseId: number | string): Promise<{ status?: string; message?: string; access_type?: string }> {
     const headers = await authHeaders();
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/enroll`, {
+    const res = await fetch(buildApiUrl(`/courses/${courseId}/enroll`), {
       method: 'POST',
       headers,
     });
@@ -79,7 +80,7 @@ export const coursesAPI = {
 
   async contents(courseId: number | string): Promise<CourseContentItem[]> {
     const headers = await authHeaders();
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/contents`, {
+    const res = await fetch(buildApiUrl(`/courses/${courseId}/contents`), {
       headers,
     });
     const data = await res.json();

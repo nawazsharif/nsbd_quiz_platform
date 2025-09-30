@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { AlertTriangle, RefreshCw, X } from 'lucide-react'
-
-function getApiBase(): string {
-  return process.env.NEXT_PUBLIC_API_URL || '/backend'
-}
+import { buildApiUrl, getApiBaseUrl } from '@/lib/apiBase'
 
 export default function ApiHealthBanner() {
   const [visible, setVisible] = useState(false)
@@ -14,10 +11,10 @@ export default function ApiHealthBanner() {
 
   const check = async () => {
     setChecking(true)
-    const base = getApiBase()
+    const base = getApiBaseUrl()
     try {
       // A simple GET; if it resolves (even 404), server is reachable through our route
-      await fetch(`${base}/health`, { cache: 'no-store' })
+      await fetch(buildApiUrl('/health'), { cache: 'no-store' })
       setVisible(false)
       setMessage('')
     } catch (_e1) {
@@ -28,7 +25,7 @@ export default function ApiHealthBanner() {
       } catch (_e2) {
         setVisible(true)
         setMessage(
-          'Unable to reach the backend API. Check API_PROXY_TARGET or NEXT_PUBLIC_API_URL and restart the dev server.'
+          'Unable to reach the backend API. Confirm the proxy settings (API_PROXY_TARGET / INTERNAL_API_URL) match your backend and restart the frontend.'
         )
       }
     } finally {
@@ -57,8 +54,8 @@ export default function ApiHealthBanner() {
             <div className="mt-0.5">
               {message}
               <ul className="list-disc ml-5 mt-1">
-                <li>If using proxy (default), set API_PROXY_TARGET to your Laravel host (e.g., http://api.quiz.test) and restart</li>
-                <li>Or set NEXT_PUBLIC_DIRECT_API=true and NEXT_PUBLIC_API_URL to your API (e.g., http://api.quiz.test/api)</li>
+                <li>If using Docker, leave NEXT_PUBLIC_API_URL unset (defaults to /backend) and ensure API_PROXY_TARGET points to your backend service.</li>
+                <li>For direct access, set NEXT_PUBLIC_DIRECT_API=true and NEXT_PUBLIC_API_URL to your API (e.g., http://localhost:8000/api) then restart.</li>
                 <li>Ensure the Laravel server is running and accessible</li>
               </ul>
             </div>

@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
+import { buildApiUrl, getApiBaseUrl } from "@/lib/apiBase";
 
 // User roles and permissions
 export const USER_ROLES = {
@@ -67,7 +68,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
 };
 
 // Prefer explicit API URL when provided; fallback to proxy path
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+const API_BASE_URL = getApiBaseUrl()
 
 // Custom user type
 export interface CustomUser {
@@ -97,10 +98,10 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          console.log('Calling Laravel API at:', `${API_BASE_URL}/auth/login`);
+          console.log('Calling Laravel API at:', buildApiUrl('/auth/login'));
 
           // Call Laravel API for authentication
-          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+          const response = await fetch(buildApiUrl('/auth/login'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -180,7 +181,7 @@ export const authOptions: NextAuthOptions = {
         console.log('Handling OAuth provider:', account.provider);
         try {
           // Check if user exists or create new user
-          const response = await fetch(`${API_BASE_URL}/auth/social/${account.provider}/login`, {
+          const response = await fetch(buildApiUrl(`/auth/social/${account.provider}/login`), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -201,7 +202,7 @@ export const authOptions: NextAuthOptions = {
               // Fetch permissions from API
               let permissions: Permission[] = [];
               try {
-                const permissionsResponse = await fetch(`${API_BASE_URL}/auth/permissions`, {
+                const permissionsResponse = await fetch(buildApiUrl('/auth/permissions'), {
                   method: 'GET',
                   headers: {
                     'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import { UserRole, Permission, USER_ROLES, ROLE_PERMISSIONS } from './auth';
+import { buildApiUrl, getApiBaseUrl } from '@/lib/apiBase';
 
 const normalizeAttempt = (attempt: any) => {
   if (!attempt || typeof attempt !== 'object') return attempt;
@@ -41,14 +42,15 @@ const normalizeAttemptArray = (attempts: any[] | undefined | null) => {
 };
 
 // Prefer explicit API URL when provided; fallback to proxy
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/backend'
+const API_BASE_URL = getApiBaseUrl()
+const apiFetch = (path: string, init?: RequestInit) => fetch(buildApiUrl(path), init)
 
 // Authentication API functions
 export const authAPI = {
   // Resolve user permissions without relying on a non-existent endpoint
   async getUserPermissions(token: string) {
     // Fetch the authenticated profile, then map role -> permissions via ROLE_PERMISSIONS
-    const res = await fetch(`${API_BASE_URL}/auth/profile`, {
+    const res = await fetch(buildApiUrl('/auth/profile'), {
       headers: {
         'Accept': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -75,7 +77,7 @@ export const authAPI = {
     sp.set('page', String(page))
     sp.set('per_page', String(perPage))
     if (search) sp.set('search', search)
-    const response = await fetch(`${API_BASE_URL}/categories?${sp.toString()}`, {
+    const response = await fetch(buildApiUrl(`/categories?${sp.toString()}`), {
       method: 'GET', headers: { 'Accept': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
     })
     const data = await response.json()
@@ -83,7 +85,7 @@ export const authAPI = {
     return data
   },
   async createCategory(payload: { name: string; slug?: string; parent_id?: number | null }, token: string) {
-    const response = await fetch(`${API_BASE_URL}/categories`, {
+    const response = await fetch(buildApiUrl('/categories'), {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
     })
     const data = await response.json()
@@ -91,7 +93,7 @@ export const authAPI = {
     return data
   },
   async updateCategory(id: number | string, payload: { name?: string; slug?: string; parent_id?: number | null }, token: string) {
-    const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+    const response = await fetch(buildApiUrl(`/categories/${id}`), {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
     })
     const data = await response.json()
@@ -99,7 +101,7 @@ export const authAPI = {
     return data
   },
   async deleteCategory(id: number | string, token: string) {
-    const response = await fetch(`${API_BASE_URL}/categories/${id}`, {
+    const response = await fetch(buildApiUrl(`/categories/${id}`), {
       method: 'DELETE', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     if (response.status === 204) return { success: true } as any
@@ -110,7 +112,7 @@ export const authAPI = {
 
   // Fetch role permissions from API
   async getRolePermissions(role: string | number, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/roles/${role}/permissions`, {
+    const response = await fetch(buildApiUrl(`/roles/${role}/permissions`), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -134,7 +136,7 @@ export const authAPI = {
 
   // Fetch all available roles from API
   async getAllRoles(token?: string) {
-    const response = await fetch(`${API_BASE_URL}/roles`, {
+    const response = await fetch(buildApiUrl('/roles'), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -158,7 +160,7 @@ export const authAPI = {
 
   // Assign role to user (superadmin only)
   async assignRoleToUser(roleId: string | number, userId: string | number, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/roles/${roleId}/assign`, {
+    const response = await fetch(buildApiUrl(`/roles/${roleId}/assign`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -174,7 +176,7 @@ export const authAPI = {
 
   // Revoke role from user (superadmin only)
   async revokeRoleFromUser(roleId: string | number, userId: string | number, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/roles/${roleId}/revoke`, {
+    const response = await fetch(buildApiUrl(`/roles/${roleId}/revoke`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -190,7 +192,7 @@ export const authAPI = {
 
   // Fetch all available permissions from API
   async getAllPermissions(token?: string) {
-    const response = await fetch(`${API_BASE_URL}/permissions`, {
+    const response = await fetch(buildApiUrl('/permissions'), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -212,7 +214,7 @@ export const authAPI = {
     return data;
   },
   async createRole(name: string, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/roles`, {
+    const response = await fetch(buildApiUrl('/roles'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -228,7 +230,7 @@ export const authAPI = {
 
   // Update role permissions (superadmin/admin depending on backend policy)
   async updateRolePermissions(role: string | number, permissionNames: string[], token?: string) {
-    const response = await fetch(`${API_BASE_URL}/roles/${role}/permissions`, {
+    const response = await fetch(buildApiUrl(`/roles/${role}/permissions`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -244,7 +246,7 @@ export const authAPI = {
 
   // Users API (admin/superadmin)
   async getUsers(token?: string, page = 1, limit = 50) {
-    const response = await fetch(`${API_BASE_URL}/users?page=${page}&limit=${limit}`, {
+    const response = await apiFetch(`/users?page=${page}&limit=${limit}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -257,7 +259,7 @@ export const authAPI = {
     return data;
   },
   async deleteUser(userId: string | number, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+    const response = await apiFetch(`/users/${userId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -273,7 +275,7 @@ export const authAPI = {
 
   // Permissions CRUD (superadmin)
   async createPermission(name: string, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/permissions`, {
+    const response = await apiFetch(`/permissions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -287,7 +289,7 @@ export const authAPI = {
     return data;
   },
   async deletePermission(id: string | number, token?: string) {
-    const response = await fetch(`${API_BASE_URL}/permissions/${id}`, {
+    const response = await apiFetch(`/permissions/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -307,7 +309,7 @@ export const authAPI = {
     password: string;
     password_confirmation: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await apiFetch(`/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -327,7 +329,7 @@ export const authAPI = {
 
   // Forgot password
   async forgotPassword(email: string) {
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    const response = await apiFetch(`/auth/forgot-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -352,7 +354,7 @@ export const authAPI = {
     password: string;
     password_confirmation: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    const response = await apiFetch(`/auth/reset-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -376,7 +378,7 @@ export const authAPI = {
     email?: string;
     avatar?: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+    const response = await apiFetch(`/auth/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -401,7 +403,7 @@ export const authAPI = {
     password: string;
     password_confirmation: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+    const response = await apiFetch(`/auth/change-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -422,7 +424,7 @@ export const authAPI = {
 
   // Logout
   async logout(token: string) {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    const response = await apiFetch(`/auth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -442,7 +444,7 @@ export const authAPI = {
 
   // Wallet
   async getWalletBalance(token: string) {
-    const res = await fetch(`${API_BASE_URL}/wallet/balance`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/wallet/balance`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch wallet balance')
     return data
@@ -450,25 +452,25 @@ export const authAPI = {
 
   // Settings (superadmin)
   async getQuizSettings(token: string) {
-    const res = await fetch(`${API_BASE_URL}/settings/quiz`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/settings/quiz`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to load quiz settings')
     return data
   },
   async updateQuizSettings(token: string, payload: { paid_quiz_approval_amount_cents: number; platform_commission_percent?: number }) {
-    const res = await fetch(`${API_BASE_URL}/settings/quiz`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/settings/quiz`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to update quiz settings')
     return data
   },
   async getCourseSettings(token: string) {
-    const res = await fetch(`${API_BASE_URL}/settings/course`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/settings/course`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to load course settings')
     return data
   },
   async updateCourseSettings(token: string, payload: { course_approval_fee_cents: number; course_platform_commission_percent?: number }) {
-    const res = await fetch(`${API_BASE_URL}/settings/course`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/settings/course`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to update course settings')
     return data
@@ -484,7 +486,7 @@ export const authAPI = {
     visibility?: 'public'|'private'
     category_id?: number | null
   }) {
-    const res = await fetch(`${API_BASE_URL}/courses`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/courses`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to create course')
     return data
@@ -500,13 +502,13 @@ export const authAPI = {
     status: 'draft'|'submitted'|'approved'|'rejected'
     category_id: number | null
   }>) {
-    const res = await fetch(`${API_BASE_URL}/courses/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/courses/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to update course')
     return data
   },
   async listCourseContents(token: string, courseId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/contents`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/courses/${courseId}/contents`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch contents')
     return data
@@ -518,7 +520,7 @@ export const authAPI = {
     duration_seconds?: number | null
     payload?: Record<string, any>
   }) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/contents`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/courses/${courseId}/contents`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to add content')
     return data
@@ -529,20 +531,20 @@ export const authAPI = {
     duration_seconds: number | null
     payload: Record<string, any>
   }>) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/contents/${contentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/courses/${courseId}/contents/${contentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to update content')
     return data
   },
   async deleteCourseContent(token: string, courseId: string|number, contentId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/contents/${contentId}`, { method: 'DELETE', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/courses/${courseId}/contents/${contentId}`, { method: 'DELETE', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     if (res.status === 204) return { success: true } as any
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to delete content')
     return data
   },
   async submitCourse(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${id}/submit`, { method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/courses/${id}/submit`, { method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to submit course')
     return data
@@ -550,31 +552,31 @@ export const authAPI = {
 
   // Payment providers (superadmin)
   async getPaymentProviders(token: string) {
-    const res = await fetch(`${API_BASE_URL}/settings/payments`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const res = await apiFetch(`/settings/payments`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to load payment providers')
     return data
   },
   async updatePaymentProvider(token: string, provider: string, payload: { enabled?: boolean; config?: Record<string, any> }) {
-    const res = await fetch(`${API_BASE_URL}/settings/payments/${provider}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
+    const res = await apiFetch(`/settings/payments/${provider}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to update provider')
     return data
   },
   async rechargeWallet(token: string, amount_cents: number, provider: 'bkash'|'sslcommerz') {
-    const res = await fetch(`${API_BASE_URL}/wallet/recharge`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ amount_cents, provider }) })
+    const res = await apiFetch(`/wallet/recharge`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ amount_cents, provider }) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to initiate recharge')
     return data
   },
   async confirmRecharge(token: string, transaction_id: string, status: 'completed'|'failed' = 'completed') {
-    const res = await fetch(`${API_BASE_URL}/wallet/recharge/confirm`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ transaction_id, status }) })
+    const res = await apiFetch(`/wallet/recharge/confirm`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ transaction_id, status }) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to confirm recharge')
     return data
   },
   async requestWithdrawal(token: string, amount_cents: number) {
-    const res = await fetch(`${API_BASE_URL}/wallet/withdrawals`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ amount_cents }) })
+    const res = await apiFetch(`/wallet/withdrawals`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ amount_cents }) })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to request withdrawal')
     return data
@@ -586,7 +588,7 @@ export const authAPI = {
     sp.set('page', String(page))
     sp.set('per_page', String(perPage))
     if (search) sp.set('search', search)
-    const res = await fetch(`${API_BASE_URL}/quizzes?${sp.toString()}`, { headers: { 'Accept': 'application/json' } })
+    const res = await apiFetch(`/quizzes?${sp.toString()}`, { headers: { 'Accept': 'application/json' } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch quizzes')
     return data
@@ -597,7 +599,7 @@ export const authAPI = {
     sp.set('page', String(page))
     sp.set('per_page', String(perPage))
     if (status) sp.set('status', status)
-    const res = await fetch(`${API_BASE_URL}/courses?${sp.toString()}`, { headers: { 'Accept': 'application/json' } })
+    const res = await apiFetch(`/courses?${sp.toString()}`, { headers: { 'Accept': 'application/json' } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch courses')
     return data
@@ -620,7 +622,7 @@ export const authAPI = {
     negative_marking?: boolean;
     negative_mark_value?: number | null;
   }) {
-    const res = await fetch(`${API_BASE_URL}/quizzes`, {
+    const res = await apiFetch(`/quizzes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
@@ -647,7 +649,7 @@ export const authAPI = {
     negative_marking: boolean;
     negative_mark_value: number | null;
   }>) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${id}`, {
+    const res = await apiFetch(`/quizzes/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
     })
     const data = await res.json()
@@ -655,7 +657,7 @@ export const authAPI = {
     return data
   },
   async deleteQuiz(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${id}`, {
+    const res = await apiFetch(`/quizzes/${id}`, {
       method: 'DELETE', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     if (res.status === 204) return { success: true } as any
@@ -664,19 +666,19 @@ export const authAPI = {
     return data
   },
   async getQuiz(id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${id}`, { headers: { 'Accept': 'application/json' } })
+    const res = await apiFetch(`/quizzes/${id}`, { headers: { 'Accept': 'application/json' } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch quiz')
     return data
   },
   async getCourse(id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${id}`, { headers: { 'Accept': 'application/json' } })
+    const res = await apiFetch(`/courses/${id}`, { headers: { 'Accept': 'application/json' } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch course')
     return data
   },
   async submitQuiz(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${id}/submit`, {
+    const res = await apiFetch(`/quizzes/${id}/submit`, {
       method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -684,7 +686,7 @@ export const authAPI = {
     return data
   },
   async approveQuiz(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/admin/quizzes/${id}/approve`, {
+    const res = await apiFetch(`/admin/quizzes/${id}/approve`, {
       method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -692,7 +694,7 @@ export const authAPI = {
     return data
   },
   async rejectQuiz(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/admin/quizzes/${id}/reject`, {
+    const res = await apiFetch(`/admin/quizzes/${id}/reject`, {
       method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -702,7 +704,7 @@ export const authAPI = {
 
   // Courses admin approvals
   async approveCourse(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/admin/courses/${id}/approve`, {
+    const res = await apiFetch(`/admin/courses/${id}/approve`, {
       method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -710,7 +712,7 @@ export const authAPI = {
     return data
   },
   async rejectCourse(token: string, id: string|number, reason?: string) {
-    const res = await fetch(`${API_BASE_URL}/admin/courses/${id}/reject`, {
+    const res = await apiFetch(`/admin/courses/${id}/reject`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ reason })
     })
     const data = await res.json()
@@ -720,13 +722,13 @@ export const authAPI = {
 
   // Questions
   async listQuestions(quizId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/questions`, { headers: { 'Accept': 'application/json' } })
+    const res = await apiFetch(`/quizzes/${quizId}/questions`, { headers: { 'Accept': 'application/json' } })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch questions')
     return data
   },
   async createQuestion(token: string, quizId: string|number, payload: any) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/questions`, {
+    const res = await apiFetch(`/quizzes/${quizId}/questions`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
     })
     const data = await res.json()
@@ -734,7 +736,7 @@ export const authAPI = {
     return data
   },
   async updateQuestion(token: string, quizId: string|number, questionId: string|number, payload: any) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/questions/${questionId}`, {
+    const res = await apiFetch(`/quizzes/${quizId}/questions/${questionId}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
     })
     const data = await res.json()
@@ -742,7 +744,7 @@ export const authAPI = {
     return data
   },
   async deleteQuestion(token: string, quizId: string|number, questionId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/questions/${questionId}`, {
+    const res = await apiFetch(`/quizzes/${quizId}/questions/${questionId}`, {
       method: 'DELETE', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     if (res.status === 204) return { success: true } as any
@@ -753,7 +755,7 @@ export const authAPI = {
 
   // Course enroll/purchase (backend handles free vs paid)
   async enrollCourse(token: string, id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${id}/enroll`, {
+    const res = await apiFetch(`/courses/${id}/enroll`, {
       method: 'POST', headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -763,7 +765,7 @@ export const authAPI = {
 
   // Course enrollment and progress tracking
   async getCourseEnrollments(token: string) {
-    const res = await fetch(`${API_BASE_URL}/course-enrollments`, {
+    const res = await apiFetch(`/course-enrollments`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -772,7 +774,7 @@ export const authAPI = {
   },
 
   async checkCourseEnrollment(token: string, courseId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/enrollment-status`, {
+    const res = await apiFetch(`/courses/${courseId}/enrollment-status`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -782,7 +784,7 @@ export const authAPI = {
 
   // Quiz enrollment and access
   async enrollQuiz(token: string, quizId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/enroll`, {
+    const res = await apiFetch(`/quizzes/${quizId}/enroll`, {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
@@ -792,7 +794,7 @@ export const authAPI = {
   },
 
   async checkQuizEnrollment(token: string, quizId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/enrollment-status`, {
+    const res = await apiFetch(`/quizzes/${quizId}/enrollment-status`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -801,7 +803,7 @@ export const authAPI = {
   },
 
   async getQuizEnrollments(token: string) {
-    const res = await fetch(`${API_BASE_URL}/quiz-enrollments`, {
+    const res = await apiFetch(`/quiz-enrollments`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -811,7 +813,8 @@ export const authAPI = {
 
   // Quiz ranking and leaderboard
   async getQuizRanking(quizId: string|number, limit?: number, token?: string) {
-    const url = new URL(`${API_BASE_URL}/quizzes/${quizId}/ranking`, window.location.origin)
+    const rankingBase = typeof window === 'undefined' ? 'http://localhost:3000' : window.location.origin
+    const url = new URL(buildApiUrl(`/quizzes/${quizId}/ranking`), rankingBase)
     if (limit) url.searchParams.set('limit', String(limit))
 
     const headers: HeadersInit = { 'Accept': 'application/json' }
@@ -826,7 +829,7 @@ export const authAPI = {
   },
 
   async getUserQuizRankings(token: string) {
-    const res = await fetch(`${API_BASE_URL}/user/quiz-rankings`, {
+    const res = await apiFetch(`/user/quiz-rankings`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -835,7 +838,7 @@ export const authAPI = {
   },
 
   async getCourseProgress(token: string, courseId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/progress`, {
+    const res = await apiFetch(`/courses/${courseId}/progress`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -847,7 +850,7 @@ export const authAPI = {
     progress_percentage?: number;
     status?: 'not_started' | 'in_progress' | 'completed';
   }) {
-    const res = await fetch(`${API_BASE_URL}/courses/${courseId}/content/${contentId}/progress`, {
+    const res = await apiFetch(`/courses/${courseId}/content/${contentId}/progress`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(progress)
@@ -860,7 +863,7 @@ export const authAPI = {
   // Quiz Attempt Tracking
   async startQuizAttempt(token: string, quizId: string|number, options?: { forceNew?: boolean }) {
     try {
-      const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/attempts`, {
+      const res = await apiFetch(`/quizzes/${quizId}/attempts`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -898,7 +901,7 @@ export const authAPI = {
     answers?: Record<string, any>;
     timeSpent?: number;
   }) {
-    const res = await fetch(`${API_BASE_URL}/quiz-attempts/${attemptId}/progress`, {
+    const res = await apiFetch(`/quiz-attempts/${attemptId}/progress`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(progress)
@@ -909,7 +912,7 @@ export const authAPI = {
   },
 
   async submitQuizAttempt(token: string, attemptId: string, finalAnswers: Record<string, any>, timeSpentSeconds?: number) {
-    const res = await fetch(`${API_BASE_URL}/quiz-attempts/${attemptId}/submit`, {
+    const res = await apiFetch(`/quiz-attempts/${attemptId}/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({
@@ -929,7 +932,7 @@ export const authAPI = {
   },
 
   async getQuizAttempt(token: string, attemptId: string) {
-    const res = await fetch(`${API_BASE_URL}/quiz-attempts/${attemptId}`, {
+    const res = await apiFetch(`/quiz-attempts/${attemptId}`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -948,7 +951,7 @@ export const authAPI = {
     sp.set('per_page', String(perPage))
     if (quizId) sp.set('quiz_id', String(quizId))
 
-    const res = await fetch(`${API_BASE_URL}/user/quiz-attempts?${sp.toString()}`, {
+    const res = await apiFetch(`/user/quiz-attempts?${sp.toString()}`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -965,7 +968,7 @@ export const authAPI = {
     const sp = new URLSearchParams()
     if (quizId) sp.set('quiz_id', String(quizId))
 
-    const res = await fetch(`${API_BASE_URL}/user/attempt-statistics?${sp.toString()}`, {
+    const res = await apiFetch(`/user/attempt-statistics?${sp.toString()}`, {
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
     const data = await res.json()
@@ -974,7 +977,7 @@ export const authAPI = {
   },
 
   async resumeQuizAttempt(token: string, attemptId: string) {
-    const res = await fetch(`${API_BASE_URL}/quiz-attempts/${attemptId}/resume`, {
+    const res = await apiFetch(`/quiz-attempts/${attemptId}/resume`, {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
@@ -988,7 +991,7 @@ export const authAPI = {
   },
 
   async abandonQuizAttempt(token: string, attemptId: string) {
-    const response = await fetch(`${API_BASE_URL}/quiz-attempts/${attemptId}/abandon`, {
+    const response = await apiFetch(`/quiz-attempts/${attemptId}/abandon`, {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
     })
@@ -1006,7 +1009,7 @@ export const authAPI = {
     sp.set('per_page', String(perPage))
     if (page > 1) sp.set('page', String(page))
 
-    const response = await fetch(`${API_BASE_URL}/quizzes/${quizId}/reviews?${sp.toString()}`, {
+    const response = await apiFetch(`/quizzes/${quizId}/reviews?${sp.toString()}`, {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
     })
@@ -1019,7 +1022,7 @@ export const authAPI = {
     rating: number;
     comment?: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/quizzes/${quizId}/reviews`, {
+    const response = await apiFetch(`/quizzes/${quizId}/reviews`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1037,7 +1040,7 @@ export const authAPI = {
     rating?: number;
     comment?: string;
   }) {
-    const response = await fetch(`${API_BASE_URL}/quizzes/${quizId}/reviews/${reviewId}`, {
+    const response = await apiFetch(`/quizzes/${quizId}/reviews/${reviewId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1052,7 +1055,7 @@ export const authAPI = {
   },
 
   async deleteQuizReview(token: string, quizId: string|number, reviewId: string|number) {
-    const response = await fetch(`${API_BASE_URL}/quizzes/${quizId}/reviews/${reviewId}`, {
+    const response = await apiFetch(`/quizzes/${quizId}/reviews/${reviewId}`, {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',
@@ -1071,7 +1074,7 @@ export const authAPI = {
     sp.set('page', String(page))
     sp.set('per_page', String(perPage))
 
-    const response = await fetch(`${API_BASE_URL}/bookmarks?${sp.toString()}`, {
+    const response = await apiFetch(`/bookmarks?${sp.toString()}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -1085,7 +1088,7 @@ export const authAPI = {
   },
 
   async toggleQuizBookmark(token: string, quizId: string|number) {
-    const response = await fetch(`${API_BASE_URL}/bookmarks/toggle/${quizId}`, {
+    const response = await apiFetch(`/bookmarks/toggle/${quizId}`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -1099,7 +1102,7 @@ export const authAPI = {
   },
 
   async checkQuizBookmark(token: string, quizId: string|number) {
-    const response = await fetch(`${API_BASE_URL}/bookmarks/check/${quizId}`, {
+    const response = await apiFetch(`/bookmarks/check/${quizId}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -1113,7 +1116,7 @@ export const authAPI = {
   },
 
   async removeQuizBookmark(token: string, quizId: string|number) {
-    const response = await fetch(`${API_BASE_URL}/bookmarks/${quizId}`, {
+    const response = await apiFetch(`/bookmarks/${quizId}`, {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',

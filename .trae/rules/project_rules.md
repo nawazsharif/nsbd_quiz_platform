@@ -11,7 +11,7 @@
   - `composer install` — install PHP deps.
   - `cp .env.example .env && php artisan key:generate` — setup env.
   - `php artisan migrate --seed` — DB schema + seeders.
-  - API base URL: `http://api.quiz.test` (no need to run `artisan serve`).
+  - API base URL: `http://localhost:8000` (no need to run `artisan serve`).
   - `php artisan test` or `vendor/bin/phpunit` — run tests.
 - Frontend (from `quiz/`):
   - `npm install` — install deps.

@@ -27,7 +27,19 @@ This is the frontend application for the Quiz and Course Platform built with Nex
 
 ## Backend Integration
 
-The frontend communicates with the Laravel API backend located at `/api.quiz`. API requests are proxied through Next.js to the backend running at `http://api.quiz.test`.
+The frontend communicates with the Laravel API backend located at `/api.quiz`. In Docker, API requests are proxied through Next.js using the `/backend` rewrite which targets the `backend` service on the internal network. For local non-Docker usage, you can point `NEXT_PUBLIC_API_URL` directly to `http://localhost:8000/api`.
+
+### Seeded Accounts
+
+Use any of the seeded credentials to explore the app after `make up`:
+
+| Role        | Email                     | Password     |
+|-------------|---------------------------|--------------|
+| Super Admin | `superadmin@example.com`  | `password123`|
+| Admin       | `jane@example.com`        | `password123`|
+| User        | `bob@example.com`         | `password123`|
+
+All seeded passwords are `password123`.
 
 ## Key Technologies
 

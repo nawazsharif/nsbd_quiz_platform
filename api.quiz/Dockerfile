@@ -43,8 +43,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application files
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --optimize-autoloader --no-dev --no-interaction
+# Install PHP dependencies (include dev tools needed for seeders)
+RUN composer install --optimize-autoloader --no-interaction
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \

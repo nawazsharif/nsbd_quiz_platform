@@ -1,6 +1,9 @@
 # Use Node.js 20 Alpine for smaller image size
 FROM node:20-alpine AS base
 
+ARG API_PROXY_TARGET=http://backend:80
+ENV API_PROXY_TARGET=$API_PROXY_TARGET
+
 # Set working directory
 WORKDIR /app
 
@@ -25,6 +28,8 @@ COPY . .
 # Set build-time environment variables
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_DISABLE_FONT_OPTIMIZATION=1
+ENV NEXT_FONT_IGNORE_MISSING_ORIGIN=1
 
 # Build the application
 RUN npm run build
@@ -51,6 +56,8 @@ RUN chown nextjs:nodejs .next
 # Copy built files with correct ownership
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/required-server-files.json ./.next/required-server-files.json
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 
 USER nextjs
 
@@ -61,10 +68,11 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_DISABLE_FONT_OPTIMIZATION=1
+ENV NEXT_FONT_IGNORE_MISSING_ORIGIN=1
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD nc -z localhost 3000 || exit 1
 
 CMD ["node", "server.js"]
-

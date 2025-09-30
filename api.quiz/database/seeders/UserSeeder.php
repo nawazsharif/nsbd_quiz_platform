@@ -32,6 +32,11 @@ class UserSeeder extends Seeder
                 'role' => 'superadmin'
             ],
             [
+                'name' => 'Super Admin',
+                'email' => 'superadmin@example.com',
+                'role' => 'superadmin'
+            ],
+            [
                 'name' => 'Jane Smith',
                 'email' => 'jane@example.com',
                 'role' => 'admin'
@@ -54,7 +59,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($specificUsers as $userData) {
-            $user = User::firstOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => $userData['email']],
                 [
                     'name' => $userData['name'],

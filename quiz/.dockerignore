@@ -57,6 +57,4 @@ Thumbs.db
 .prettierrc
 tailwind.config.js
 next.config.js
-tsconfig.json
 Dockerfile
-
