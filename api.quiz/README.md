@@ -9,17 +9,14 @@
 
 ## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Authentication & Authorization**: JWT-based authentication with role-based permissions
+- **Quiz Management**: Create, manage, and take quizzes with different question types
+- **Course Management**: Create and manage courses with content and progress tracking
+- **Wallet System**: Digital wallet for payments and withdrawals
+- **Review System**: Rate and review quizzes and courses
+- **Bookmark System**: Bookmark favorite quizzes and courses
+- **Admin Features**: Approval workflows for content moderation
+- **Bulk Question Tools**: CSV/Excel imports and AI-assisted question generation
 
 ## Learning Laravel
 
@@ -31,7 +28,23 @@ If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Lar
 
 ## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Question Import & AI Generation
+
+- **Bulk import endpoint**: `POST /api/quizzes/{quiz}/questions/import`
+  - Accepts `.csv`, `.xlsx`, or `.xls` uploads.
+  - Supports the columns `type`, `question`, `options`, `correct_options`, `points`, `correct`, and `sample_answer`.
+  - MCQ rows can mark correct answers with an asterisk (e.g. `*Option A`) or by listing indexes/text in `correct_options` (e.g. `1|3`).
+  - True/False rows use the `correct` column (`true`, `false`, `yes`, `no`).
+- **AI generation endpoint**: `POST /api/quizzes/{quiz}/questions/generate-ai`
+  - Accepts PDF or image uploads and generates new questions using the configured AI provider.
+  - Optional body fields: `count` (max `AI_MAX_QUESTIONS`), `question_type` (`mcq`, `true_false`, `short_desc`), `difficulty` (`easy`, `medium`, `hard`).
+- **Environment variables**:
+  - `OPENAI_API_KEY` – required to enable AI generation.
+  - `OPENAI_MODEL` (default `gpt-4o-mini`), `AI_MAX_QUESTIONS`, `AI_TEMPERATURE` to fine-tune behaviour.
+
+See `config/ai.php` for provider settings and sensible defaults.
+
+## Testing
 
 ### Premium Partners
 

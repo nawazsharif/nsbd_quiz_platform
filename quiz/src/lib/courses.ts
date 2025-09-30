@@ -2,7 +2,7 @@
 
 import { getSession } from 'next-auth/react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/backend';
+import { apiBase as API_BASE_URL } from './env';
 
 export interface Course {
   id: number;

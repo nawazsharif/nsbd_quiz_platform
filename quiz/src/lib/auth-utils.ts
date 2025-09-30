@@ -1,4 +1,5 @@
 import { UserRole, Permission, USER_ROLES, ROLE_PERMISSIONS } from './auth';
+import { apiBase as API_BASE_URL, buildApiUrl } from './env';
 
 const normalizeAttempt = (attempt: any) => {
   if (!attempt || typeof attempt !== 'object') return attempt;
@@ -40,8 +41,7 @@ const normalizeAttemptArray = (attempts: any[] | undefined | null) => {
   return attempts.map(normalizeAttempt);
 };
 
-// Prefer explicit API URL when provided; fallback to proxy
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/backend'
+// API_BASE_URL is sourced centrally from env.ts
 
 // Authentication API functions
 export const authAPI = {
@@ -731,6 +731,32 @@ export const authAPI = {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to create question')
+    return data
+  },
+  async importQuizQuestions(token: string, quizId: string|number, formData: FormData) {
+    const res = await fetch(buildApiUrl(`/quizzes/${quizId}/questions/import`), {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error((data as any)?.message || 'Failed to import questions')
+    return data
+  },
+  async generateQuizQuestions(token: string, quizId: string|number, formData: FormData) {
+    const res = await fetch(buildApiUrl(`/quizzes/${quizId}/questions/generate-ai`), {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error((data as any)?.message || 'Failed to generate questions')
     return data
   },
   async updateQuestion(token: string, quizId: string|number, questionId: string|number, payload: any) {

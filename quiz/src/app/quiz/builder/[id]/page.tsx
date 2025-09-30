@@ -27,6 +27,21 @@ export default function QuizBuilderPage() {
   const [form, setForm] = useState<any>({ type: 'mcq', text: '', prompt: '', sample_answer: '', multiple_correct: false, correct_boolean: true, points: 1, options: [{ text: '', is_correct: false }] })
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importDefaults, setImportDefaults] = useState<{ type: '' | 'mcq' | 'true_false' | 'short_desc'; points: number }>({ type: '', points: 1 })
+  const [importing, setImporting] = useState(false)
+  const [importFeedback, setImportFeedback] = useState<any>(null)
+  const [importError, setImportError] = useState('')
+  const [importInputKey, setImportInputKey] = useState(() => Date.now())
+  const [aiFile, setAiFile] = useState<File | null>(null)
+  const [aiCount, setAiCount] = useState(5)
+  const [aiQuestionType, setAiQuestionType] = useState<'mcq' | 'true_false' | 'short_desc'>('mcq')
+  const [aiGenerating, setAiGenerating] = useState(false)
+  const [aiError, setAiError] = useState('')
+  const [aiResult, setAiResult] = useState<any>(null)
+  const [aiInputKey, setAiInputKey] = useState(() => Date.now())
+  const [showImportTools, setShowImportTools] = useState(false)
+  const [showAiTools, setShowAiTools] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -107,6 +122,70 @@ export default function QuizBuilderPage() {
       await load()
     } catch (e: any) {
       setError(e.message || 'Delete failed')
+    }
+  }
+
+  const handleImportSubmit = async () => {
+    if (!token) {
+      setImportError('Please sign in to import questions.')
+      return
+    }
+    if (!importFile) {
+      setImportError('Select a CSV or Excel file to import.')
+      return
+    }
+
+    setImporting(true)
+    setImportError('')
+    setImportFeedback(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', importFile)
+      if (importDefaults.type) formData.append('default_type', importDefaults.type)
+      if (importDefaults.points > 0) formData.append('default_points', String(importDefaults.points))
+      formData.append('start_order_index', String((questions?.length || 0) + 1))
+
+      const result = await authAPI.importQuizQuestions(token, quizId, formData)
+      setImportFeedback(result)
+      setImportFile(null)
+      setImportInputKey(Date.now())
+      await load()
+    } catch (e: any) {
+      setImportError(e.message || 'Failed to import questions')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  const handleAiGenerate = async () => {
+    if (!token) {
+      setAiError('Please sign in to generate questions.')
+      return
+    }
+    if (!aiFile) {
+      setAiError('Select a PDF or image file to analyze.')
+      return
+    }
+
+    setAiGenerating(true)
+    setAiError('')
+    setAiResult(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', aiFile)
+      formData.append('count', String(Math.max(1, Math.min(20, aiCount))))
+      if (aiQuestionType) formData.append('question_type', aiQuestionType)
+      if (meta?.difficulty) formData.append('difficulty', meta.difficulty)
+
+      const result = await authAPI.generateQuizQuestions(token, quizId, formData)
+      setAiResult(result)
+      setAiFile(null)
+      setAiInputKey(Date.now())
+      await load()
+    } catch (e: any) {
+      setAiError(e.message || 'Failed to generate questions')
+    } finally {
+      setAiGenerating(false)
     }
   }
 
@@ -237,6 +316,161 @@ export default function QuizBuilderPage() {
 
         <div className="bg-white border rounded-xl p-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">{editing ? 'Edit Question' : 'Add Question'}</h2>
+          <div className="space-y-3 mb-4">
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowImportTools((prev) => !prev)}
+                className="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <span>Bulk import questions (CSV / Excel)</span>
+                <span className="text-xs text-slate-500">{showImportTools ? 'Hide' : 'Show'}</span>
+              </button>
+              {showImportTools && (
+                <div className="p-4 space-y-3 bg-slate-50 border-t">
+                  <p className="text-xs text-slate-600">
+                    Accepted columns: <code className="font-mono text-[11px] bg-white px-1 rounded">type</code>, <code className="font-mono text-[11px] bg-white px-1 rounded">question</code>, <code className="font-mono text-[11px] bg-white px-1 rounded">options</code>, <code className="font-mono text-[11px] bg-white px-1 rounded">correct_options</code>, <code className="font-mono text-[11px] bg-white px-1 rounded">points</code>, <code className="font-mono text-[11px] bg-white px-1 rounded">correct</code>.
+                  </p>
+                  {importError && (
+                    <div className="rounded-md border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-xs">
+                      {importError}
+                    </div>
+                  )}
+                  {importFeedback && (
+                    <div className="rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-2 text-xs space-y-1">
+                      <div>Imported {importFeedback.created ?? 0} question(s).</div>
+                      {importFeedback.failed ? <div>Skipped {importFeedback.failed} row(s).</div> : null}
+                    </div>
+                  )}
+                  {Array.isArray(importFeedback?.errors) && importFeedback.errors.length > 0 && (
+                    <div className="rounded-md border border-amber-200 bg-amber-50 text-amber-700 px-3 py-2 text-xs space-y-1">
+                      <div>Review the first few issues:</div>
+                      <ul className="list-disc list-inside space-y-1">
+                        {importFeedback.errors.slice(0, 3).map((err: any, idx: number) => (
+                          <li key={idx}>Row {err?.row ?? '?'}: {err?.message ?? 'Unknown error'}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <input
+                    key={importInputKey}
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null
+                      setImportFile(file)
+                      setImportError('')
+                    }}
+                    className="w-full text-sm text-slate-600"
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-600 mb-1">Default type</label>
+                      <select
+                        className="h-9 w-full rounded-md border px-2 text-sm"
+                        value={importDefaults.type}
+                        onChange={(event) => setImportDefaults({ ...importDefaults, type: event.target.value as typeof importDefaults.type })}
+                      >
+                        <option value="">Auto-detect</option>
+                        <option value="mcq">Multiple choice</option>
+                        <option value="true_false">True / False</option>
+                        <option value="short_desc">Short answer</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-600 mb-1">Default points</label>
+                      <input
+                        type="number"
+                        min={1}
+                        className="h-9 w-full rounded-md border px-2 text-sm"
+                        value={importDefaults.points}
+                        onChange={(event) => setImportDefaults({ ...importDefaults, points: Math.max(1, Number(event.target.value) || 1) })}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleImportSubmit}
+                    disabled={importing || !importFile || !token}
+                    className="h-9 px-3 rounded-md bg-emerald-600 text-white text-sm hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    {importing ? 'Importing…' : 'Import questions'}
+                  </button>
+                  <p className="text-[11px] text-slate-500">Imported questions are appended after the existing {questions.length} question(s).</p>
+                </div>
+              )}
+            </div>
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowAiTools((prev) => !prev)}
+                className="w-full flex items-center justify-between px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <span>Generate with AI (PDF / image)</span>
+                <span className="text-xs text-slate-500">{showAiTools ? 'Hide' : 'Show'}</span>
+              </button>
+              {showAiTools && (
+                <div className="p-4 space-y-3 bg-slate-50 border-t">
+                  <p className="text-xs text-slate-600">
+                    We'll send the document to your configured AI provider and create {aiQuestionType === 'short_desc' ? 'short-answer' : aiQuestionType === 'true_false' ? 'true/false' : 'multiple choice'} questions.
+                  </p>
+                  {aiError && (
+                    <div className="rounded-md border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-xs">{aiError}</div>
+                  )}
+                  {aiResult && (
+                    <div className="rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-2 text-xs">
+                      Generated {aiResult.created ?? (aiResult.questions?.length || 0)} question(s).
+                    </div>
+                  )}
+                  <input
+                    key={aiInputKey}
+                    type="file"
+                    accept=".pdf,image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null
+                      setAiFile(file)
+                      setAiError('')
+                    }}
+                    className="w-full text-sm text-slate-600"
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-600 mb-1">Number of questions</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        className="h-9 w-full rounded-md border px-2 text-sm"
+                        value={aiCount}
+                        onChange={(event) => setAiCount(Math.max(1, Math.min(20, Number(event.target.value) || 1)))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-600 mb-1">Question type</label>
+                      <select
+                        className="h-9 w-full rounded-md border px-2 text-sm"
+                        value={aiQuestionType}
+                        onChange={(event) => setAiQuestionType(event.target.value as typeof aiQuestionType)}
+                      >
+                        <option value="mcq">Multiple choice</option>
+                        <option value="true_false">True / False</option>
+                        <option value="short_desc">Short answer</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAiGenerate}
+                    disabled={aiGenerating || !aiFile || !token}
+                    className="h-9 px-3 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-50"
+                  >
+                    {aiGenerating ? 'Generating…' : 'Generate with AI'}
+                  </button>
+                  <p className="text-[11px] text-slate-500">Requires an AI API key on the server. Generation may take a few seconds.</p>
+                </div>
+              )}
+            </div>
+          </div>
           <form onSubmit={onSubmitQuestion} className="space-y-3">
             <div>
               <label className="block text-sm text-slate-600 mb-1">Type</label>

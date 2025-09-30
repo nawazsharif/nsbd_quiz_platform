@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthContextType = {
     user,
-    isLoading: isLoading || permissionsLoading,
+    isLoading: isLoading || (session ? permissionsLoading : false),
     hasPermission,
     hasRole,
     hasAnyRole,

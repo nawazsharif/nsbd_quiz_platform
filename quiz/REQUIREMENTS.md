@@ -106,7 +106,8 @@ Education Portal is a comprehensive learning platform that combines quiz creatio
 - **Media Support:** Images, audio, and video in questions
 - **Auto-save:** Real-time draft saving with version history
 - **Preview System:** Full quiz preview before submission
-- **Bulk Operations:** Import/export quizzes, batch editing
+- **Bulk Operations:** CSV/Excel imports, export, and batch editing
+- **AI Assistance:** Generate question banks from PDF or image sources via the configured AI provider
 
 ### Course System
 - **Content Types:** Text lessons, video content, PDF documents, embedded quizzes

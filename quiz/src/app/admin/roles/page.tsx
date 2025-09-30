@@ -56,8 +56,12 @@ export default function RolesPage() {
     setActiveRole(role)
     try {
       const rp = await authAPI.getRolePermissions(role.id as any, token)
-      const list = Array.isArray(rp) ? rp : (rp as any)?.permissions || []
-      const names = Array.from(new Set(list.map((x: any) => x?.name || x?.permission || x)))
+      const list: unknown[] = Array.isArray(rp) ? rp : (rp as any)?.permissions || []
+      const names: string[] = Array.from(
+        new Set(
+          list.map((x: any) => String(x?.name ?? x?.permission ?? x))
+        )
+      )
       setAssigned(names)
     } catch (e: any) {
       setAssigned([])

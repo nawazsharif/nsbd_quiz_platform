@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { authAPI } from '@/lib/auth-utils';
 import { Permission, UserRole } from '@/lib/auth';
+import { isApiAvailable } from '@/lib/apiBase';
 
 interface UsePermissionsReturn {
   permissions: Permission[];
@@ -25,10 +26,20 @@ export function usePermissions(): UsePermissionsReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchPermissions = useCallback(async () => {
+    // Don't make API calls if backend is not available
+    if (!isApiAvailable()) {
+      setPermissions([]);
+      setRoles([]);
+      setAllPermissions([]);
+      setIsLoading(false);
+      return;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const accessToken = (session as any)?.accessToken;
     if (!accessToken) {
       setPermissions([]);
+      setIsLoading(false);
       return;
     }
 
@@ -53,6 +64,10 @@ export function usePermissions(): UsePermissionsReturn {
     } catch (err) {
       console.error('Failed to fetch permissions:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch permissions');
+      // Set empty arrays on error to prevent crashes
+      setPermissions([]);
+      setRoles([]);
+      setAllPermissions([]);
     } finally {
       setIsLoading(false);
     }

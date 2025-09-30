@@ -124,17 +124,17 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
 
   const getSuggestions = useCallback((searchQuery: string): SearchSuggestion[] => {
     if (!searchQuery.trim()) return [];
-    
+
     return mockSuggestions.filter(suggestion =>
       suggestion.text.toLowerCase().includes(searchQuery.toLowerCase())
     ).slice(0, 6);
   }, []);
 
-  const debounce = useCallback((func: Function, delay: number) => {
+  const debounce = useCallback((func: (...args: unknown[]) => unknown, delay: number) => {
     let timeoutId: NodeJS.Timeout;
-    return (...args: any[]) => {
+    return (...args: unknown[]) => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(null, args), delay);
+      timeoutId = setTimeout(() => func(...args), delay);
     };
   }, []);
 
@@ -157,7 +157,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
     setIsLoading(true);
     setShowSuggestions(false);
     setSelectedIndex(-1);
-    
+
     try {
       // Simulate API call - replace with actual API call
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -206,8 +206,8 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
       ];
 
       // Filter results based on active filter
-      const filteredResults = activeFilter === 'all' 
-        ? mockResults 
+      const filteredResults = activeFilter === 'all'
+        ? mockResults
         : mockResults.filter(result => result.type === activeFilter);
 
       setResults(filteredResults);
@@ -226,7 +226,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
   const handleInputChange = (value: string) => {
     setQuery(value);
     setSelectedIndex(-1);
-    
+
     if (value.trim()) {
       debouncedGetSuggestions(value);
     } else {
@@ -286,7 +286,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
               onChange={(e) => handleInputChange(e.target.value)}
               className="w-full pl-10 pr-4 py-3 text-lg text-gray-900 placeholder-gray-500 border-0 focus:ring-0 focus:outline-none"
             />
-            
+
             {/* Autocomplete Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 z-10">
@@ -313,7 +313,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
               </div>
             )}
           </div>
-          
+
           {/* Filter Buttons */}
           <div className="flex items-center gap-2 ml-4">
             {['all', 'quiz', 'course', 'category'].map((filter) => (
@@ -330,7 +330,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
               </button>
             ))}
           </div>
-          
+
           <button
             onClick={onClose}
             className="ml-4 p-2 hover:bg-gray-100 rounded-lg"
@@ -361,7 +361,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
                     >
                       <div className="flex items-start space-x-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          result.type === 'quiz' ? 'bg-blue-100' : 
+                          result.type === 'quiz' ? 'bg-blue-100' :
                           result.type === 'course' ? 'bg-green-100' : 'bg-purple-100'
                         }`}>
                           {result.type === 'quiz' ? (
@@ -375,7 +375,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
                         <div className="flex-1">
                           <h3 className="font-medium text-gray-900">{result.title}</h3>
                           <p className="text-sm text-gray-500 mt-1">{result.description}</p>
-                          
+
                           {/* Tags and Difficulty */}
                           {(result.tags || result.difficulty) && (
                             <div className="flex items-center gap-2 mt-2">
@@ -391,7 +391,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
                               ))}
                             </div>
                           )}
-                          
+
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center space-x-4 text-xs text-gray-400">
                               <span>by {result.author}</span>

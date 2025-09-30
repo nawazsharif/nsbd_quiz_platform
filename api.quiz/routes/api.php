@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\QuestionController;
+use App\Http\Controllers\Api\QuizQuestionBulkController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\WithdrawalController;
@@ -87,6 +88,8 @@ Route::apiResource('categories', CategoryController::class);
 Route::apiResource('quizzes', QuizController::class);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('quizzes/{quiz}/submit', [QuizController::class, 'submit']);
+    Route::post('quizzes/{quiz}/questions/import', [QuizQuestionBulkController::class, 'import']);
+    Route::post('quizzes/{quiz}/questions/generate-ai', [QuizQuestionBulkController::class, 'generate']);
 });
 Route::apiResource('quizzes.questions', QuestionController::class);
 

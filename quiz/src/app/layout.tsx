@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import NavigationLayout from "@/components/navigation/NavigationLayout";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 
 const inter = Inter({
@@ -28,14 +29,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
-      >
-        <Providers>
-          <NavigationLayout>
-            {children}
-          </NavigationLayout>
-        </Providers>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+        <ErrorBoundary>
+          <Providers>
+            <NavigationLayout>
+              {children}
+            </NavigationLayout>
+          </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );
