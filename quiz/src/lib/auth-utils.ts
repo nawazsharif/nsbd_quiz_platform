@@ -573,20 +573,28 @@ export const authAPI = {
     if (!res.ok) throw new Error(data?.message || 'Failed to confirm recharge')
     return data
   },
-  async requestWithdrawal(token: string, amount_cents: number) {
-    const res = await fetch(`${API_BASE_URL}/wallet/withdrawals`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ amount_cents }) })
+  async requestWithdrawal(token: string, amount_cents: number, provider: 'bkash'|'sslcommerz' = 'bkash', meta?: Record<string, unknown>) {
+    const res = await fetch(`${API_BASE_URL}/wallet/withdrawals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ amount_cents, provider, meta })
+    })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to request withdrawal')
     return data
   },
 
   // Quizzes
-  async getQuizzes(page = 1, perPage = 50, search?: string) {
+  async getQuizzes(page = 1, perPage = 50, search?: string, token?: string) {
     const sp = new URLSearchParams()
     sp.set('page', String(page))
     sp.set('per_page', String(perPage))
     if (search) sp.set('search', search)
-    const res = await fetch(`${API_BASE_URL}/quizzes?${sp.toString()}`, { headers: { 'Accept': 'application/json' } })
+    const headers: HeadersInit = { 'Accept': 'application/json' }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const res = await fetch(`${API_BASE_URL}/quizzes?${sp.toString()}`, { headers })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch quizzes')
     return data
@@ -663,8 +671,12 @@ export const authAPI = {
     if (!res.ok) throw new Error(data?.message || 'Failed to delete quiz')
     return data
   },
-  async getQuiz(id: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${id}`, { headers: { 'Accept': 'application/json' } })
+  async getQuiz(id: string|number, token?: string) {
+    const headers: HeadersInit = { 'Accept': 'application/json' }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const res = await fetch(`${API_BASE_URL}/quizzes/${id}`, { headers })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch quiz')
     return data
@@ -719,8 +731,12 @@ export const authAPI = {
   },
 
   // Questions
-  async listQuestions(quizId: string|number) {
-    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/questions`, { headers: { 'Accept': 'application/json' } })
+  async listQuestions(quizId: string|number, token?: string) {
+    const headers: HeadersInit = { 'Accept': 'application/json' }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const res = await fetch(`${API_BASE_URL}/quizzes/${quizId}/questions`, { headers })
     const data = await res.json()
     if (!res.ok) throw new Error(data?.message || 'Failed to fetch questions')
     return data

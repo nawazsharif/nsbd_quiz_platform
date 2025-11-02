@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/dashboard/PageHeader'
 import TiptapEditor from '@/components/editor/TiptapEditor'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka } from '@/lib/utils'
 
 export default function CreateCoursePage() {
   const { data: session } = useSession()
@@ -85,8 +86,16 @@ export default function CreateCoursePage() {
             <div className="sm:col-span-3 flex items-end gap-4">
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_paid} onChange={(e)=>setForm({...form, is_paid: e.target.checked})} /> Paid course</label>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Price (cents)</label>
-                <input type="number" min={0} className="h-10 w-full rounded-md border px-3" value={form.price_cents} onChange={(e)=>setForm({...form, price_cents: Number(e.target.value)})} disabled={!form.is_paid} />
+                <label className="block text-sm font-medium text-slate-700 mb-1">Price (৳)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="h-10 w-full rounded-md border px-3"
+                  value={Number(form.price_cents ?? 0) / 100}
+                  onChange={(e)=>setForm({...form, price_cents: Math.round(Number(e.target.value || 0) * 100)})}
+                  disabled={!form.is_paid}
+                />
               </div>
             </div>
           </section>
@@ -102,7 +111,7 @@ export default function CreateCoursePage() {
             <ul className="text-sm text-slate-700 space-y-1">
               <li><span className="text-slate-500">Title:</span> {form.title || '—'}</li>
               <li><span className="text-slate-500">Visibility:</span> {form.visibility}</li>
-              <li><span className="text-slate-500">Pricing:</span> {form.is_paid ? `$${(form.price_cents/100).toFixed(2)}` : 'Free'}</li>
+              <li><span className="text-slate-500">Pricing:</span> {form.is_paid ? formatTaka(form.price_cents, { fromCents: true }) : 'Free'}</li>
             </ul>
           </div>
           <div className="bg-white border rounded-xl p-4">

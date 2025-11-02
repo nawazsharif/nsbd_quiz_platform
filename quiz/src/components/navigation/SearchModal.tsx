@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Clock, TrendingUp, Star, BookOpen, Play, Tag, Filter, ArrowRight } from 'lucide-react';
+import { stripHtmlTags } from '@/lib/utils';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -373,8 +374,8 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
                           )}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{result.title}</h3>
-                          <p className="text-sm text-gray-500 mt-1">{result.description}</p>
+                          <h3 className="font-medium text-gray-900">{stripHtmlTags(result.title)}</h3>
+                          <p className="text-sm text-gray-500 mt-1">{stripHtmlTags(result.description)}</p>
 
                           {/* Tags and Difficulty */}
                           {(result.tags || result.difficulty) && (

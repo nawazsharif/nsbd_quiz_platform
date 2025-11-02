@@ -8,6 +8,7 @@ use App\Models\Quiz;
 use App\Models\QuizEnrollment;
 use App\Models\Setting;
 use App\Models\WalletAccount;
+use App\Services\WalletTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -16,7 +17,7 @@ use Illuminate\Http\Response;
  */
 class PurchaseController extends Controller
 {
-    public function __construct()
+    public function __construct(protected WalletTransactionService $transactions)
     {
         $this->middleware('auth:sanctum');
     }
@@ -70,6 +71,12 @@ class PurchaseController extends Controller
         $authorWallet = WalletAccount::firstOrCreate(['user_id' => $quiz->owner_id]);
         $authorWallet->balance_cents += $authorShare;
         $authorWallet->save();
+        $this->transactions->record($quiz->owner_id, 'quiz_sale', $authorShare, 'completed', [
+            'quiz_id' => $quiz->id,
+            'quiz_title' => $quiz->title,
+            'buyer_id' => $user->id,
+            'direction' => 'credit',
+        ]);
 
         // Credit platform revenue to superadmin wallet
         $superadmin = \App\Models\User::role('superadmin')->first();
@@ -77,6 +84,14 @@ class PurchaseController extends Controller
             $superadminWallet = WalletAccount::firstOrCreate(['user_id' => $superadmin->id]);
             $superadminWallet->balance_cents += $platformShare;
             $superadminWallet->save();
+            if ($platformShare > 0) {
+                $this->transactions->record($superadmin->id, 'platform_fee', $platformShare, 'completed', [
+                    'source' => 'quiz_purchase',
+                    'quiz_id' => $quiz->id,
+                    'buyer_id' => $user->id,
+                    'direction' => 'credit',
+                ]);
+            }
         }
 
         PlatformRevenue::create([
@@ -87,6 +102,14 @@ class PurchaseController extends Controller
         ]);
 
         QuizEnrollment::firstOrCreate(['quiz_id' => $quiz->id, 'user_id' => $user->id]);
+        $this->transactions->record($user->id, 'quiz_purchase', $price, 'completed', [
+            'quiz_id' => $quiz->id,
+            'quiz_title' => $quiz->title,
+            'direction' => 'debit',
+            'platform_fee_cents' => $platformShare,
+            'author_share_cents' => $authorShare,
+        ]);
+
         return response()->json(['status' => 'purchased', 'author_credited_cents' => $authorShare, 'platform_revenue_cents' => $platformShare]);
     }
 }

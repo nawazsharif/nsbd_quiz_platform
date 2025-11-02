@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\QuizController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\QuizQuestionBulkController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\SslcommerzCallbackController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\WithdrawalController;
 use App\Http\Controllers\Api\AdminQuizApprovalController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\CourseBookmarkController;
 use App\Http\Controllers\Api\CourseEnrollmentController;
 use App\Http\Controllers\Api\QuizEnrollmentController;
+use App\Http\Controllers\Api\WalletTransactionController;
 use App\Http\Controllers\QuizAttemptController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +45,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::match(['GET', 'POST'], 'payments/sslcommerz/success', [SslcommerzCallbackController::class, 'success'])->name('payments.sslcommerz.success');
+Route::match(['GET', 'POST'], 'payments/sslcommerz/fail', [SslcommerzCallbackController::class, 'failure'])->name('payments.sslcommerz.fail');
+Route::match(['GET', 'POST'], 'payments/sslcommerz/cancel', [SslcommerzCallbackController::class, 'cancel'])->name('payments.sslcommerz.cancel');
+Route::match(['GET', 'POST'], 'payments/sslcommerz/ipn', [SslcommerzCallbackController::class, 'ipn'])->name('payments.sslcommerz.ipn');
 
 // Authentication routes (public)
 Route::prefix('auth')->group(function () {
@@ -109,6 +116,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('wallet/balance', [WalletController::class, 'balance']);
     Route::post('wallet/recharge', [WalletController::class, 'recharge']);
     Route::post('wallet/recharge/confirm', [WalletController::class, 'confirm']);
+    Route::get('wallet/transactions', [WalletTransactionController::class, 'index']);
 
     // Withdrawals
     Route::post('wallet/withdrawals', [WithdrawalController::class, 'requestWithdrawal']);

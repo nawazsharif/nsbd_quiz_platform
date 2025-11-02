@@ -7,6 +7,7 @@ import PageHeader from '@/components/dashboard/PageHeader'
 import { authAPI } from '@/lib/auth-utils'
 import BookmarkButton from '@/components/ui/BookmarkButton'
 import { Star, ShoppingCart, Filter, X, UserPlus, Play, LineChart } from 'lucide-react'
+import { formatTaka, stripHtmlTags } from '@/lib/utils'
 
 type Quiz = {
   id: number
@@ -182,15 +183,15 @@ export default function PublicQuizzesPage() {
     return arr
   }, [items, search, categoryId, priceType, difficulty, minRating, sortBy])
 
-  const priceText = (q: Quiz) => (q.is_paid && Number(q.price_cents || 0) > 0) ? `$${((q.price_cents || 0)/100).toFixed(2)}` : 'Free'
+  const priceText = (q: Quiz) => (q.is_paid && Number(q.price_cents || 0) > 0) ? formatTaka(Number(q.price_cents || 0), { fromCents: true }) : 'Free'
   const openPreview = async (quizId: number) => {
     setPreviewLoading(true)
     try {
-      const data = await authAPI.getQuiz(quizId)
+      const data = await authAPI.getQuiz(quizId, token)
       // Best-effort: also try to get question count
       let totalQuestions: number | undefined
       try {
-        const qs = await authAPI.listQuestions(quizId)
+        const qs = await authAPI.listQuestions(quizId, token)
         totalQuestions = Array.isArray(qs) ? qs.length : (qs?.data?.length || qs?.total || undefined)
       } catch {}
       setPreview({ ...(data as any), totalQuestions } as any)
@@ -263,7 +264,7 @@ export default function PublicQuizzesPage() {
               <div className="p-4 pr-14">
                 <div className="flex items-start justify-between gap-2">
                   <Link href={`/quiz/${q.id}`} className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{q.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-emerald-600 transition-colors">{stripHtmlTags(q.title)}</h3>
                   </Link>
                   <span className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${q.is_paid && Number(q.price_cents||0)>0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>{priceText(q)}</span>
                 </div>
@@ -271,7 +272,7 @@ export default function PublicQuizzesPage() {
                   {q.difficulty && <span className="inline-flex px-2 py-0.5 rounded-full bg-slate-100 capitalize">{q.difficulty}</span>}
                   {q.category?.name && <span className="inline-flex px-2 py-0.5 rounded-full bg-slate-100">{q.category.name}</span>}
                 </div>
-                {q.description && <p className="mt-2 text-sm text-gray-600 line-clamp-2">{q.description}</p>}
+                {q.description && <p className="mt-2 text-sm text-gray-600 line-clamp-2">{stripHtmlTags(q.description)}</p>}
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center text-amber-500 text-sm">
                     <Star className="w-4 h-4 mr-1 fill-amber-400" />
@@ -301,7 +302,7 @@ export default function PublicQuizzesPage() {
                         className="inline-flex items-center h-9 px-3 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
                       >
                         <ShoppingCart className="w-4 h-4 mr-1"/>
-                        {enrolling[q.id] ? 'Enrolling...' : `Enroll $${((q.price_cents || 0)/100).toFixed(2)}`}
+                    {enrolling[q.id] ? 'Enrolling...' : `Enroll ${formatTaka(Number(q.price_cents || 0), { fromCents: true })}`}
                       </button>
                     ) : (
                       <button
@@ -328,30 +329,30 @@ export default function PublicQuizzesPage() {
           <div className="relative bg-white w-full max-w-2xl mx-4 rounded-2xl shadow-xl border p-6">
             <button onClick={()=>setPreview(null)} className="absolute top-3 right-3 h-8 w-8 rounded-full border hover:bg-gray-50 flex items-center justify-center"><X className="w-4 h-4"/></button>
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-xl font-semibold text-gray-900">{(preview as any)?.title}</h3>
+              <h3 className="text-xl font-semibold text-gray-900">{stripHtmlTags((preview as any)?.title)}</h3>
               <span className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${preview?.is_paid && Number(preview?.price_cents||0)>0 ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>{priceText(preview as any)}</span>
             </div>
-            <div className="mt-2 text-sm text-slate-600">{(preview as any)?.description}</div>
+            <div className="mt-2 text-sm text-slate-600">{stripHtmlTags((preview as any)?.description)}</div>
             <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
               <div className="rounded-lg border p-3">
-                <div className="text-slate-500">Difficulty</div>
-                <div className="font-medium capitalize">{(preview as any)?.difficulty || '—'}</div>
+                <div className="text-slate-600 text-xs font-medium">Difficulty</div>
+                <div className="font-semibold text-slate-900 capitalize mt-1">{(preview as any)?.difficulty || '—'}</div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-slate-500">Category</div>
-                <div className="font-medium">{(preview as any)?.category?.name || '—'}</div>
+                <div className="text-slate-600 text-xs font-medium">Category</div>
+                <div className="font-semibold text-slate-900 mt-1">{(preview as any)?.category?.name || '—'}</div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-slate-500">Rating</div>
-                <div className="font-medium flex items-center text-amber-500"><Star className="w-4 h-4 mr-1 fill-amber-400"/>{Number((preview as any)?.rating_avg||0).toFixed(1)} <span className="ml-1 text-gray-500">({(preview as any)?.rating_count||0})</span></div>
+                <div className="text-slate-600 text-xs font-medium">Rating</div>
+                <div className="font-semibold flex items-center text-amber-500 mt-1"><Star className="w-4 h-4 mr-1 fill-amber-400"/>{Number((preview as any)?.rating_avg||0).toFixed(1)} <span className="ml-1 text-slate-600">({(preview as any)?.rating_count||0})</span></div>
               </div>
               <div className="rounded-lg border p-3">
-                <div className="text-slate-500">Total Questions</div>
-                <div className="font-medium">{(preview as any)?.totalQuestions ?? '—'}</div>
+                <div className="text-slate-600 text-xs font-medium">Total Questions</div>
+                <div className="font-semibold text-slate-900 mt-1">{(preview as any)?.totalQuestions ?? '—'}</div>
               </div>
               <div className="rounded-lg border p-3 col-span-2">
-                <div className="text-slate-500">Marking Scheme</div>
-                <div className="font-medium">Total Marks: {(preview as any)?.total_marks ?? '—'} {((preview as any)?.negative_marking) ? `• Negative marking enabled (${(preview as any)?.negative_mark_value ?? ''})` : '• No negative marking'}</div>
+                <div className="text-slate-600 text-xs font-medium">Marking Scheme</div>
+                <div className="font-semibold text-slate-900 mt-1">Total Marks: {(preview as any)?.total_marks ?? '—'} {((preview as any)?.negative_marking) ? `• Negative marking enabled (${(preview as any)?.negative_mark_value ?? ''})` : '• No negative marking'}</div>
               </div>
             </div>
             <div className="mt-6 flex items-center justify-end gap-2">
@@ -377,7 +378,7 @@ export default function PublicQuizzesPage() {
                   className="inline-flex items-center h-9 px-3 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   <ShoppingCart className="w-4 h-4 mr-1"/>
-                  {enrolling[(preview as any)?.id] ? 'Enrolling...' : `Enroll $${((preview?.price_cents || 0)/100).toFixed(2)}`}
+                  {enrolling[(preview as any)?.id] ? 'Enrolling...' : `Enroll ${formatTaka(Number(preview?.price_cents || 0), { fromCents: true })}`}
                 </button>
               ) : (
                 <button

@@ -72,3 +72,37 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## SSLCommerz Setup
+
+The SSLCommerz gateway reads its credentials from the `payment_settings` table. Use the superadmin Settings API to enable the provider and supply the following keys:
+
+- `store_id` and `store_password`
+- `sandbox` (boolean) to toggle sandbox vs. live endpoints (defaults to sandbox)
+- Optional redirect URLs: `success_redirect`, `fail_redirect`, `cancel_redirect`
+- Optional `callback_url` to force wallet redirects to a specific frontend handler (overrides the redirect URLs above)
+- Optional `frontend_url` (or env vars such as `FRONTEND_APP_URL`, `SSLCZ_SUCCESS_REDIRECT`, `SSLCZ_FAIL_REDIRECT`) to send learners back to the client after checkout. When only `frontend_url` is provided the API automatically redirects to `<frontend>/wallet` with `status`, `provider`, and `transaction_id` query parameters.
+- Optional `disbursement` block containing `url`, `username`, and `password` for payouts
+
+Example payload:
+
+```json
+{
+  "enabled": true,
+  "config": {
+    "store_id": "testbox",
+    "store_password": "qwerty",
+    "sandbox": true,
+    "success_redirect": "https://quiz.test/wallet/recharge-success",
+    "fail_redirect": "https://quiz.test/wallet/recharge-failed",
+    "cancel_redirect": "https://quiz.test/wallet/recharge-cancelled",
+    "disbursement": {
+      "url": "https://sandbox.sslcommerz.com/debitapi/initiate",
+      "username": "dps_user",
+      "password": "dps_pass"
+    }
+  }
+}
+```
+
+After credentials are configured, wallet recharges initiated with `provider=sslcommerz` will return a `gateway_url` for the client to redirect the learner. Successful callbacks redirect learners back to the wallet screen when a frontend redirect target is configured, while the JSON payload remains available for programmatic integrations. Withdrawal approvals automatically call the SSLCommerz disbursement API when the withdrawal request uses `provider=sslcommerz` and includes destination account metadata.

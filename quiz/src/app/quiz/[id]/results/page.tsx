@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import QuizNavigation from '@/components/navigation/QuizNavigation'
+import { stripHtmlTags } from '@/lib/utils'
 
 type Question = {
   id: number
@@ -105,10 +106,10 @@ export default function QuizResultsPage() {
         throw new Error('This attempt is not completed yet. Please complete the quiz first.')
       }
 
-      const quizFromAttempt = quizPayload || await authAPI.getQuiz(quizId)
+      const quizFromAttempt = quizPayload || await authAPI.getQuiz(quizId, token)
       let questions = (quizFromAttempt as any)?.questions as Question[] | undefined
       if (!questions || questions.length === 0) {
-        questions = await authAPI.listQuestions(quizId)
+        questions = await authAPI.listQuestions(quizId, token)
       }
 
       const normalizedAnswers = answerPayload ? { ...answerPayload } : (attemptData.answers || {})
@@ -324,7 +325,7 @@ export default function QuizResultsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">{quiz.title}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{stripHtmlTags(quiz.title)}</h1>
           <p className="text-slate-600">Quiz Results</p>
         </div>
         <div className="flex items-center gap-3">
@@ -450,7 +451,7 @@ export default function QuizResultsPage() {
                     </div>
                     <div>
                       <h4 className="font-medium text-slate-900">
-                        {question.text || question.prompt}
+                        {stripHtmlTags(question.text || question.prompt || '')}
                       </h4>
                       <div className="text-xs text-slate-500 capitalize">
                         {question.type.replace('_', ' ')}

@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -270,6 +271,8 @@ class SocialAuthController extends Controller
                         'email' => $existingUser->email,
                         'avatar' => $existingUser->avatar,
                         'provider' => $existingUser->provider,
+                        'provider_id' => $existingUser->provider_id,
+                        'roles' => $existingUser->getRoleNames()->toArray(),
                     ],
                     'token' => $token,
                     'token_type' => 'Bearer'
@@ -298,6 +301,8 @@ class SocialAuthController extends Controller
                         'email' => $userByEmail->email,
                         'avatar' => $userByEmail->avatar,
                         'provider' => $userByEmail->provider,
+                        'provider_id' => $userByEmail->provider_id,
+                        'roles' => $userByEmail->getRoleNames()->toArray(),
                     ],
                     'token' => $token,
                     'token_type' => 'Bearer'
@@ -331,10 +336,12 @@ class SocialAuthController extends Controller
                     'email' => $newUser->email,
                     'avatar' => $newUser->avatar,
                     'provider' => $newUser->provider,
+                    'provider_id' => $newUser->provider_id,
+                    'roles' => $newUser->getRoleNames()->toArray(),
                 ],
                 'token' => $token,
                 'token_type' => 'Bearer'
-            ]);
+            ], Response::HTTP_CREATED);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -353,7 +360,10 @@ class SocialAuthController extends Controller
         $allowedProviders = ['google', 'github', 'facebook'];
 
         if (!in_array($provider, $allowedProviders)) {
-            throw new \InvalidArgumentException("Provider '{$provider}' is not supported. Allowed providers: " . implode(', ', $allowedProviders));
+            response()->json([
+                'success' => false,
+                'message' => 'Invalid provider. Supported providers: ' . implode(', ', $allowedProviders)
+            ], 400)->throwResponse();
         }
     }
 }

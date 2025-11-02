@@ -67,9 +67,10 @@ export default function CourseBuilderPage() {
   // Load quizzes for selection when needed
   useEffect(() => {
     const fetchQuizzes = async () => {
+      if (!token) return
       try {
         setQuizLoading(true)
-        const res = await authAPI.getQuizzes(1, 100)
+        const res = await authAPI.getQuizzes(1, 100, undefined, token)
         const list = (res?.data?.data ?? res?.data ?? res) as any
         const all: any[] = (Array.isArray(list?.data) ? list.data : Array.isArray(list) ? list : [])
         setQuizList(all)
@@ -77,7 +78,7 @@ export default function CourseBuilderPage() {
       finally { setQuizLoading(false) }
     }
     if (form.type === 'quiz') fetchQuizzes()
-  }, [form.type])
+  }, [form.type, token])
 
   const onSaveMeta = async () => {
     if (!token) return
@@ -119,8 +120,12 @@ export default function CourseBuilderPage() {
   // Quiz question management functions
   const loadQuestions = async (quizId: string) => {
     if (!quizId) return
+    if (!token) {
+      setError('Please sign in to view quiz questions')
+      return
+    }
     try {
-      const qs = await authAPI.listQuestions(quizId)
+      const qs = await authAPI.listQuestions(quizId, token)
       setQuestions(qs || [])
     } catch (e: any) {
       setError(e.message || 'Failed to load questions')
@@ -233,7 +238,15 @@ export default function CourseBuilderPage() {
             </div>
             <div className="flex items-center gap-3">
               <label className="text-sm text-slate-700 flex items-center gap-2"><input type="checkbox" checked={!!meta.is_paid} onChange={(e)=>setMeta({...meta, is_paid: e.target.checked})} /> Paid</label>
-              <input type="number" min={0} className="h-10 w-40 rounded-md border px-3 text-gray-900" value={meta.price_cents} onChange={(e)=>setMeta({...meta, price_cents: Number(e.target.value)})} disabled={!meta.is_paid} />
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                className="h-10 w-40 rounded-md border px-3 text-gray-900"
+                value={Number(meta.price_cents ?? 0) / 100}
+                onChange={(e)=>setMeta({...meta, price_cents: Math.round(Number(e.target.value || 0) * 100)})}
+                disabled={!meta.is_paid}
+              />
             </div>
           </div>
         )}

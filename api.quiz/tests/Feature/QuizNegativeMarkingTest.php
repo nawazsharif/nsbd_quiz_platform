@@ -62,39 +62,30 @@ class QuizNegativeMarkingTest extends TestCase
 
         $startResponse = $this->postJson('/api/quiz-attempts/start', [
             'quiz_id' => $quiz->id,
-        ])->assertStatus(200);
+        ])->assertStatus(201);
 
-        $attemptId = $startResponse->json('data.attempt.id');
+        $attemptId = $startResponse->json('attempt.id');
 
         $submitResponse = $this->postJson("/api/quiz-attempts/{$attemptId}/submit", [
             'time_spent_seconds' => 120,
             'answers' => [
-                [
-                    'question_id' => $questionOne->id,
-                    'selected_option_id' => $questionOneCorrect->id,
-                    'time_spent_seconds' => 30,
-                ],
-                [
-                    'question_id' => $questionTwo->id,
-                    'selected_option_id' => $questionTwoWrong->id,
-                    'time_spent_seconds' => 30,
-                ],
+                (string) $questionOne->id => 0,
+                (string) $questionTwo->id => 1,
             ],
         ])->assertStatus(200);
-
-        $submitResponse->assertJsonPath('data.score', fn ($value) => (float) $value === 25.0);
-        $submitResponse->assertJsonPath('data.correct_answers', 1);
-        $submitResponse->assertJsonPath('data.incorrect_answers', 1);
-        $submitResponse->assertJsonPath('data.earned_points', fn ($value) => (float) $value === 1.0);
-        $submitResponse->assertJsonPath('data.penalty_points', fn ($value) => (float) $value === 1.0);
+        $submitResponse->assertJsonPath('results.score', fn ($value) => abs((float) $value - 50.0) < 0.01);
+        $submitResponse->assertJsonPath('attempt.correct_answers', 1);
+        $submitResponse->assertJsonPath('attempt.incorrect_answers', 1);
+        $submitResponse->assertJsonPath('attempt.earned_points', fn ($value) => abs((float) $value - 2.0) < 0.01);
+        $submitResponse->assertJsonPath('attempt.penalty_points', fn ($value) => abs((float) $value - 1.0) < 0.01);
 
         $this->assertDatabaseHas('quiz_attempts', [
             'id' => $attemptId,
             'correct_answers' => 1,
             'incorrect_answers' => 1,
-            'earned_points' => '1.00',
+            'earned_points' => '2.00',
             'penalty_points' => '1.00',
-            'score' => '25.00',
+            'score' => '50.00',
         ]);
     }
 }

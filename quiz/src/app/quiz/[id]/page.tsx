@@ -5,11 +5,11 @@ import Link from 'next/link'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka, stripHtmlTags } from '@/lib/utils'
 import PageHeader from '@/components/dashboard/PageHeader'
 import ReviewSection from '@/components/quiz/ReviewSection'
 import ShareQuiz from '@/components/quiz/ShareQuiz'
 import BookmarkButton from '@/components/ui/BookmarkButton'
-import QuizNavigation from '@/components/navigation/QuizNavigation'
 
 export default function QuizDetailsPage() {
   const params = useParams()
@@ -109,14 +109,9 @@ export default function QuizDetailsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <PageHeader title={quiz.title || 'Quiz'} subtitle={quiz.description ? String(quiz.description).slice(0, 140) : undefined} />
-
-      {/* Navigation */}
-      <QuizNavigation
-        quizId={quiz.id}
-        quizTitle={quiz.title}
-        returnTo={returnTo}
-        currentPage="details"
+      <PageHeader
+        title={stripHtmlTags(quiz.title || 'Quiz')}
+        subtitle={quiz.description ? stripHtmlTags(String(quiz.description)).slice(0, 140) : undefined}
       />
 
       {/* Quiz Details Card */}
@@ -124,7 +119,7 @@ export default function QuizDetailsPage() {
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             {quiz.difficulty && <div className="text-xs inline-block px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 capitalize mb-3">{quiz.difficulty}</div>}
-            {quiz.description && <p className="text-slate-700 whitespace-pre-line mb-4">{quiz.description}</p>}
+            {quiz.description && <p className="text-slate-700 whitespace-pre-line mb-4">{stripHtmlTags(quiz.description)}</p>}
             <div className="text-sm text-slate-600 mb-4">Timer: {quiz.timer_seconds ? Math.round(quiz.timer_seconds/60) : 0} min</div>
           </div>
           <div className="flex items-center gap-2">
@@ -158,7 +153,7 @@ export default function QuizDetailsPage() {
               disabled={enrolling}
               className="inline-flex items-center gap-2 h-10 px-4 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
             >
-              {enrolling ? 'Enrolling...' : quiz.is_paid ? `Enroll for $${(quiz.price_cents / 100).toFixed(2)}` : 'Enroll (Free)'}
+              {enrolling ? 'Enrolling...' : quiz.is_paid ? `Enroll for ${formatTaka(quiz.price_cents, { fromCents: true })}` : 'Enroll (Free)'}
             </button>
           )}
         </div>

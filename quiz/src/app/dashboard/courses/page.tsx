@@ -6,6 +6,7 @@ import PageHeader from '@/components/dashboard/PageHeader'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka } from '@/lib/utils'
 
 type Course = { id: number; title: string; owner_id?: number; visibility?: string; is_paid?: boolean; price_cents?: number; status?: string; created_at?: string }
 
@@ -100,7 +101,7 @@ export default function MyCoursesPage() {
                     <tr key={c.id} className="border-t">
                       <td className="px-4 py-2 text-slate-900">{c.title}</td>
                       <td className="px-4 py-2 capitalize">{c.visibility || 'public'}</td>
-                      <td className="px-4 py-2">{c.is_paid ? `$${((c.price_cents||0)/100).toFixed(2)}` : 'Free'}</td>
+                      <td className="px-4 py-2">{c.is_paid ? formatTaka(Number(c.price_cents || 0), { fromCents: true }) : 'Free'}</td>
                       <td className="px-4 py-2">
                         {(() => {
                           const s = (c.status || 'draft').toLowerCase()
@@ -127,4 +128,3 @@ export default function MyCoursesPage() {
     </div>
   )
 }
-

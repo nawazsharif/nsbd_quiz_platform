@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka } from '@/lib/utils'
 import Link from 'next/link'
 import PageHeader from '@/components/dashboard/PageHeader'
 import {
@@ -133,7 +134,7 @@ export default function EnrolledQuizzesPage() {
 
   const formatPrice = (priceCents?: number) => {
     if (!priceCents) return 'Free'
-    return `$${(priceCents / 100).toFixed(2)}`
+    return formatTaka(priceCents, { fromCents: true })
   }
 
   const formatTime = (seconds?: number) => {

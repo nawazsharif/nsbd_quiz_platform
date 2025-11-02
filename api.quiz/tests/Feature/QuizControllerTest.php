@@ -17,7 +17,7 @@ class QuizControllerTest extends TestCase
 
     public function test_public_can_list_and_show_quizzes()
     {
-        $quiz = Quiz::factory()->create();
+        $quiz = Quiz::factory()->create(['status' => 'published']);
 
         $this->getJson('/api/quizzes')->assertStatus(200)
             ->assertJsonStructure(['data']);

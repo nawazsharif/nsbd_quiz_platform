@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  Share2, 
-  Copy, 
-  Facebook, 
-  Twitter, 
-  Linkedin, 
-  Mail, 
+import {
+  Share2,
+  Copy,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Mail,
   MessageCircle,
   QrCode,
   Download,
@@ -17,6 +17,7 @@ import {
   Globe,
   Lock
 } from 'lucide-react'
+import { stripHtmlTags } from '@/lib/utils'
 
 type Quiz = {
   id: string | number
@@ -43,8 +44,8 @@ export default function ShareQuiz({ quiz, className = '', variant = 'button', sh
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const quizUrl = `${baseUrl}/quiz/${quiz.id}`
-  const shareTitle = `Check out this quiz: ${quiz.title}`
-  const shareDescription = quiz.description || `Take this ${quiz.difficulty || ''} quiz about ${quiz.category || 'various topics'}.`
+  const shareTitle = `Check out this quiz: ${stripHtmlTags(quiz.title)}`
+  const shareDescription = stripHtmlTags(quiz.description || '') || `Take this ${quiz.difficulty || ''} quiz about ${quiz.category || 'various topics'}.`
 
   const copyToClipboard = async () => {
     try {
@@ -119,11 +120,11 @@ export default function ShareQuiz({ quiz, className = '', variant = 'button', sh
     <div className="space-y-6">
       {/* Quiz Info */}
       <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">{quiz.title}</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">{stripHtmlTags(quiz.title)}</h3>
         {quiz.description && (
-          <p className="text-sm text-slate-600 mb-3">{quiz.description}</p>
+          <p className="text-sm text-slate-600 mb-3">{stripHtmlTags(quiz.description)}</p>
         )}
-        
+
         <div className="flex items-center gap-4 text-xs text-slate-500">
           {quiz.questions_count && (
             <span className="flex items-center gap-1">
@@ -213,7 +214,7 @@ export default function ShareQuiz({ quiz, className = '', variant = 'button', sh
             {showQR ? 'Hide' : 'Show'} QR Code
           </button>
         </div>
-        
+
         {showQR && (
           <div className="text-center space-y-3">
             <div className="inline-block p-4 bg-white border rounded-lg">

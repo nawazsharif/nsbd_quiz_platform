@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka, stripHtmlTags } from '@/lib/utils'
 import Link from 'next/link'
 import {
   BookOpen,
@@ -143,7 +144,7 @@ export default function EnrolledQuizzesPage() {
 
   const formatPrice = (priceCents?: number) => {
     if (!priceCents) return 'Free'
-    return `$${(priceCents / 100).toFixed(2)}`
+    return formatTaka(priceCents, { fromCents: true })
   }
 
   const formatTime = (seconds?: number) => {
@@ -308,7 +309,7 @@ export default function EnrolledQuizzesPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-slate-900">{enrollment.quiz.title}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900">{stripHtmlTags(enrollment.quiz.title)}</h3>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDifficultyColor(enrollment.quiz.difficulty)}`}>
                       {enrollment.quiz.difficulty || 'Unknown'}
                     </span>
@@ -317,7 +318,7 @@ export default function EnrolledQuizzesPage() {
                     </span>
                   </div>
                   {enrollment.quiz.description && (
-                    <p className="text-slate-600 mb-3">{enrollment.quiz.description}</p>
+                    <p className="text-slate-600 mb-3">{stripHtmlTags(enrollment.quiz.description)}</p>
                   )}
                   <div className="flex items-center gap-4 text-sm text-slate-500">
                     <div className="flex items-center gap-1">

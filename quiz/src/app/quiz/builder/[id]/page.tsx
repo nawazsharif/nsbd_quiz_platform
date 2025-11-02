@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
@@ -14,14 +14,14 @@ export default function QuizBuilderPage() {
   const params = useParams()
   const quizId = params?.id as string
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const token = (session as any)?.accessToken as string | undefined
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [quiz, setQuiz] = useState<any>(null)
   const [questions, setQuestions] = useState<Question[]>([])
-  const [meta, setMeta] = useState<any>({ title: '', description: '', difficulty: 'medium', timer_seconds: 1800, category_id: null, negative_marking: false, negative_mark_value: 0, is_paid: false, price_cents: 0, status: 'draft' })
+  const [meta, setMeta] = useState<any>({ title: '', description: '', difficulty: 'medium', timer_seconds: 1800, category_id: null, negative_marking: false, negative_mark_value: null, is_paid: false, price_cents: 0, status: 'draft' })
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([])
   const [editing, setEditing] = useState<Question | null>(null)
   const [form, setForm] = useState<any>({ type: 'mcq', text: '', prompt: '', sample_answer: '', multiple_correct: false, correct_boolean: true, points: 1, options: [{ text: '', is_correct: false }] })
@@ -43,11 +43,21 @@ export default function QuizBuilderPage() {
   const [showImportTools, setShowImportTools] = useState(false)
   const [showAiTools, setShowAiTools] = useState(false)
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    if (!quizId) return
+    if (!token) {
+      if (status === 'loading') return
+      setError('Please sign in to manage this quiz')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
-      const [q, qs] = await Promise.all([authAPI.getQuiz(quizId), authAPI.listQuestions(quizId)])
+      const [q, qs] = await Promise.all([
+        authAPI.getQuiz(quizId, token),
+        authAPI.listQuestions(quizId, token)
+      ])
       setQuiz(q)
       setMeta({
         title: q?.title || '',
@@ -56,7 +66,7 @@ export default function QuizBuilderPage() {
         timer_seconds: q?.timer_seconds || 1800,
         category_id: q?.category_id ?? null,
         negative_marking: !!q?.negative_marking,
-        negative_mark_value: typeof q?.negative_mark_value === 'number' ? q.negative_mark_value : 0,
+        negative_mark_value: typeof q?.negative_mark_value === 'number' ? Number(q.negative_mark_value) : null,
         is_paid: !!q?.is_paid,
         price_cents: typeof q?.price_cents === 'number' ? q.price_cents : 0,
         status: q?.status || 'draft',
@@ -67,9 +77,9 @@ export default function QuizBuilderPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [quizId, token, status])
 
-  useEffect(() => { if (quizId) load() }, [quizId])
+  useEffect(() => { load() }, [load])
 
   useEffect(() => {
     authAPI.getCategories(undefined, 1, 100)
@@ -82,12 +92,22 @@ export default function QuizBuilderPage() {
 
   const onSaveMeta = async () => {
     if (!token) return
+
+    if (meta.negative_marking) {
+      const value = meta.negative_mark_value
+      if (value === null || !Number.isFinite(value) || value <= 0) {
+        setError('Negative mark value is required and must be greater than 0 when negative marking is enabled.')
+        return
+      }
+    }
+
     setSaving(true)
     try {
+      const negativeValue = meta.negative_marking ? meta.negative_mark_value : null
       const payload = {
         ...meta,
         price_cents: meta.is_paid ? meta.price_cents : 0,
-        negative_mark_value: meta.negative_marking ? Number(meta.negative_mark_value || 0) : null,
+        negative_mark_value: negativeValue,
       }
       await authAPI.updateQuiz(token, quizId, payload)
       await load()
@@ -270,21 +290,29 @@ export default function QuizBuilderPage() {
                 </label>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm text-slate-600 mb-1">Price (cents)</label>
-                <input type="number" min={0} className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" value={meta.price_cents ?? 0} onChange={(e)=>setMeta({...meta, price_cents: Number(e.target.value)})} disabled={!meta.is_paid || meta.status === 'published'} />
+                <label className="block text-sm text-slate-600 mb-1">Price (৳)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500"
+                  value={Number(meta.price_cents ?? 0) / 100}
+                  onChange={(e)=>setMeta({...meta, price_cents: Math.round(Number(e.target.value || 0) * 100)})}
+                  disabled={!meta.is_paid || meta.status === 'published'}
+                />
                 {meta.status === 'published' && <p className="text-xs text-slate-500 mt-1">Price cannot be changed after publishing.</p>}
               </div>
             </div>
             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-end">
                 <label className="inline-flex items-center gap-2 text-sm mt-6">
-                  <input type="checkbox" checked={!!meta.negative_marking} onChange={(e)=>setMeta({...meta, negative_marking: e.target.checked, negative_mark_value: e.target.checked ? (meta.negative_mark_value ?? 0) : 0})} />
+                  <input type="checkbox" checked={!!meta.negative_marking} onChange={(e)=>setMeta({...meta, negative_marking: e.target.checked, negative_mark_value: e.target.checked ? (meta.negative_mark_value ?? null) : null})} />
                   Enable negative marking
                 </label>
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm text-slate-600 mb-1">Negative mark value</label>
-                <input type="number" min={0} step={0.01} className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" value={meta.negative_mark_value ?? 0} onChange={(e)=>setMeta({...meta, negative_mark_value: Number(e.target.value)})} disabled={!meta.negative_marking} />
+                <input type="number" min={0} step={0.01} className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" value={meta.negative_mark_value ?? ''} onChange={(e)=>setMeta({...meta, negative_mark_value: e.target.value === '' ? null : Number(e.target.value)})} disabled={!meta.negative_marking} />
                 <p className="text-xs text-slate-500 mt-1">Deduction per wrong answer when enabled.</p>
               </div>
             </div>

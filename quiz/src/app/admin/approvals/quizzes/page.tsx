@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
@@ -8,11 +8,12 @@ import { PERMISSIONS } from '@/lib/auth'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
 import PageHeader from '@/components/dashboard/PageHeader'
+import { formatTaka } from '@/lib/utils'
 
 export default function QuizApprovalsPage() {
   const { user } = useAuth()
   const { hasPermission, isLoading } = usePermissions()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const token = (session as any)?.accessToken as string | undefined
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -21,11 +22,17 @@ export default function QuizApprovalsPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [details, setDetails] = useState<Record<string, { quiz: any; questions: any[] }>>({})
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    if (!token) {
+      if (status === 'loading') return
+      setError('Please sign in to review quizzes')
+      setItems([])
+      return
+    }
     setLoading(true)
     setError('')
     try {
-      const res = await authAPI.getQuizzes(1, 200)
+      const res = await authAPI.getQuizzes(1, 200, undefined, token)
       const list = (res?.data?.data ?? res?.data ?? res) as any
       const all: any[] = (Array.isArray(list?.data) ? list.data : Array.isArray(list) ? list : [])
       setItems(all.filter((q:any)=> (q.status === 'pending_review' || q.status === 'waiting')))
@@ -34,9 +41,9 @@ export default function QuizApprovalsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token, status])
 
-  useEffect(()=>{ load() }, [])
+  useEffect(()=>{ load() }, [load])
 
   const canApprove = user && (user.role === 'admin' || user.role === 'super_admin' || hasPermission(PERMISSIONS.APPROVE_QUIZ))
 
@@ -97,13 +104,17 @@ export default function QuizApprovalsPage() {
                       <div className="flex flex-wrap items-center gap-2 md:justify-end">
                         <button
                           onClick={async()=>{
+                            if (!token) {
+                              setError('Please sign in to view quiz details')
+                              return
+                            }
                             if (expandedId === q.id) { setExpandedId(null); return }
                             setExpandedId(q.id)
                             if (details[q.id]) return
                             try {
                               const [full, questions] = await Promise.all([
-                                authAPI.getQuiz(q.id),
-                                authAPI.listQuestions(q.id)
+                                authAPI.getQuiz(q.id, token),
+                                authAPI.listQuestions(q.id, token)
                               ])
                               setDetails(prev => ({ ...prev, [q.id]: { quiz: full, questions: Array.isArray(questions) ? questions : (questions?.data || []) } }))
                             } catch (e:any) {
@@ -155,7 +166,7 @@ export default function QuizApprovalsPage() {
                                 <div className="text-sm"><span className="text-slate-500">Difficulty:</span> <span className="capitalize">{quiz.difficulty || '-'}</span></div>
                                 <div className="text-sm"><span className="text-slate-500">Timer:</span> {quiz.timer_seconds ? Math.round(quiz.timer_seconds/60) : 0} min</div>
                                 <div className="text-sm"><span className="text-slate-500">Visibility:</span> {quiz.visibility || 'public'}</div>
-                                <div className="text-sm"><span className="text-slate-500">Paid:</span> {quiz.is_paid ? `Yes ($${(Number(quiz.price_cents||0)/100).toFixed(2)})` : 'No'}</div>
+                                <div className="text-sm"><span className="text-slate-500">Paid:</span> {quiz.is_paid ? `Yes (${formatTaka(Number(quiz.price_cents || 0), { fromCents: true })})` : 'No'}</div>
                                 {quiz.negative_marking && (
                                   <div className="text-sm"><span className="text-slate-500">Negative marking:</span> -{quiz.negative_mark_value}</div>
                                 )}

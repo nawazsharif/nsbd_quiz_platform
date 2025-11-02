@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\WalletAccount;
 use App\Models\WalletTransaction;
+use App\Services\Payments\SslcommerzService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * @OA\Tag(name="Wallet", description="Wallet operations")
@@ -30,9 +32,12 @@ use Illuminate\Support\Str;
  */
 class WalletController extends Controller
 {
-    public function __construct()
+    protected SslcommerzService $sslcommerz;
+
+    public function __construct(SslcommerzService $sslcommerz)
     {
         $this->middleware('auth:sanctum');
+        $this->sslcommerz = $sslcommerz;
     }
 
     /**
@@ -77,7 +82,20 @@ class WalletController extends Controller
             'status' => 'pending',
             'meta' => ['provider' => $validated['provider']],
         ]);
-        // In real life, return gateway session/link
+        if ($validated['provider'] === 'sslcommerz') {
+            try {
+                $session = $this->sslcommerz->initiatePayment($tx, $request->user());
+            } catch (Throwable $e) {
+                $tx->status = 'failed';
+                $tx->meta = array_merge($tx->meta ?? [], ['error' => $e->getMessage()]);
+                $tx->save();
+
+                return response()->json(['message' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            return response()->json(array_merge(['transaction_id' => $tx->transaction_id], $session), Response::HTTP_CREATED);
+        }
+
         return response()->json($tx, Response::HTTP_CREATED);
     }
 
@@ -103,6 +121,9 @@ class WalletController extends Controller
             ->firstOrFail();
         if ($tx->status !== 'pending') {
             return response()->json(['message' => 'Already processed'], 200);
+        }
+        if (($tx->meta['provider'] ?? null) === 'sslcommerz') {
+            return response()->json(['message' => 'Use SSLCommerz payment flow for this transaction'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         $tx->status = $validated['status'];
         $tx->save();

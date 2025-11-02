@@ -8,6 +8,7 @@ import { QuizAttempt, QuizProgress } from '@/types/quiz-attempt'
 import { ArrowLeft, Clock, Play, RotateCcw, Save, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import QuizNavigation from '@/components/navigation/QuizNavigation'
+import { stripHtmlTags } from '@/lib/utils'
 
 type Question = any
 
@@ -15,7 +16,7 @@ export default function TakeQuizPage() {
   const params = useParams()
   const router = useRouter()
   const search = useSearchParams()
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const quizId = params?.id as string
   const [quiz, setQuiz] = useState<any>(null)
   const [questions, setQuestions] = useState<Question[]>([])
@@ -40,11 +41,20 @@ export default function TakeQuizPage() {
 
   const token = (session as any)?.accessToken as string | undefined
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    if (!token) {
+      if (status === 'loading') return
+      setError('Please sign in to take this quiz.')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
-      const [q, qs] = await Promise.all([authAPI.getQuiz(quizId), authAPI.listQuestions(quizId)])
+      const [q, qs] = await Promise.all([
+        authAPI.getQuiz(quizId, token),
+        authAPI.listQuestions(quizId, token)
+      ])
       setQuiz(q)
       setQuestions(qs || [])
       if (q?.timer_seconds) setRemaining(q.timer_seconds)
@@ -64,10 +74,6 @@ export default function TakeQuizPage() {
           setLoading(false)
           return
         }
-      } else {
-        setError('Please sign in to take this quiz.')
-        setLoading(false)
-        return
       }
 
       // Check for existing attempts first
@@ -148,7 +154,7 @@ export default function TakeQuizPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [token, status, quizId, wantsRetake, returnTo, router])
 
   // Auto-save progress function
   const saveProgress = useCallback(async (force = false) => {
@@ -266,7 +272,7 @@ export default function TakeQuizPage() {
     }, 2000) // Save 2 seconds after last change
   }, [saveProgress])
 
-  useEffect(() => { if (quizId) load() }, [quizId])
+  useEffect(() => { if (quizId) load() }, [quizId, load])
 
   // Set up auto-save interval
   useEffect(() => {
@@ -519,7 +525,7 @@ export default function TakeQuizPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{quiz.title}</h1>
+          <h1 className="text-xl font-bold text-slate-900">{stripHtmlTags(quiz.title)}</h1>
           <div className="text-sm text-slate-600">Question {Math.min(idx+1, questions.length)} / {questions.length}</div>
           {token && attempt && (
             <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">

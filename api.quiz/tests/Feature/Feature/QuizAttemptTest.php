@@ -191,7 +191,7 @@ class QuizAttemptTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonFragment(['status' => 'completed'])
             ->assertJsonPath('attempt.status', 'completed')
-            ->assertJsonPath('results.score', 100.0);
+            ->assertJsonPath('results.score', 100);
 
         $this->assertDatabaseHas('quiz_attempts', [
             'id' => $attempt->id,
@@ -330,14 +330,14 @@ class QuizAttemptTest extends TestCase
         Sanctum::actingAs($user);
         $this->enroll($user, $quiz);
 
-        // Make multiple rapid requests
-        for ($i = 0; $i < 4; $i++) {
+        // Make multiple rapid requests up to the configured threshold
+        for ($i = 0; $i < 30; $i++) {
             $this->postJson("/api/quizzes/{$quiz->id}/attempts", [
                 'force_new' => true,
             ]);
         }
 
-        // The 4th request should be rate limited
+        // The next request should be rate limited
         $response = $this->postJson("/api/quizzes/{$quiz->id}/attempts", [
             'force_new' => true,
         ]);

@@ -7,6 +7,7 @@ import { authAPI } from '@/lib/auth-utils'
 import PageHeader from '@/components/dashboard/PageHeader'
 import { Plus } from 'lucide-react'
 import TiptapEditor from '@/components/editor/TiptapEditor'
+import { formatTaka } from '@/lib/utils'
 
 export default function CreateQuizPage() {
   const { data: session } = useSession()
@@ -23,7 +24,7 @@ export default function CreateQuizPage() {
     status: 'draft',
     category_id: null as number | null,
     negative_marking: false,
-    negative_mark_value: 0 as number | null,
+    negative_mark_value: null as number | null,
   })
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([])
   const [timerMinutes, setTimerMinutes] = useState<number>(Math.round(30))
@@ -43,14 +44,24 @@ export default function CreateQuizPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!token) { setError('Please sign in'); return }
+
+    if (form.negative_marking) {
+      const value = form.negative_mark_value
+      if (value === null || !Number.isFinite(value) || value <= 0) {
+        setError('Negative mark value is required and must be greater than 0 when negative marking is enabled.')
+        return
+      }
+    }
+
     setSaving(true)
     setError('')
     try {
+      const negativeValue = form.negative_marking ? form.negative_mark_value : null
       const payload = {
         ...form,
         price_cents: form.is_paid ? form.price_cents : 0,
         timer_seconds: Math.max(0, Math.round(Number(timerMinutes) || 0) * 60),
-        negative_mark_value: form.negative_marking ? Number(form.negative_mark_value || 0) : null,
+        negative_mark_value: negativeValue,
       }
       const res = await authAPI.createQuiz(token, payload as any)
       const id = res?.id || res?.data?.id
@@ -154,8 +165,16 @@ export default function CreateQuizPage() {
             <div className="sm:col-span-2 flex items-end gap-4">
               <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_paid} onChange={(e)=>setForm({...form, is_paid: e.target.checked})} /> Paid quiz</label>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-slate-700 mb-1">Price (cents)</label>
-                <input type="number" min={0} className="h-10 w-full rounded-md border px-3" value={form.price_cents} onChange={(e)=>setForm({...form, price_cents: Number(e.target.value)})} disabled={!form.is_paid} />
+                <label className="block text-sm font-medium text-slate-700 mb-1">Price (৳)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="h-10 w-full rounded-md border px-3"
+                  value={Number(form.price_cents ?? 0) / 100}
+                  onChange={(e)=>setForm({...form, price_cents: Math.round(Number(e.target.value || 0) * 100)})}
+                  disabled={!form.is_paid}
+                />
               </div>
             </div>
           </section>
@@ -166,7 +185,7 @@ export default function CreateQuizPage() {
                 <input
                   type="checkbox"
                   checked={form.negative_marking}
-                  onChange={(e)=>setForm({...form, negative_marking: e.target.checked, negative_mark_value: e.target.checked ? (form.negative_mark_value ?? 0) : 0})}
+                  onChange={(e)=>setForm({...form, negative_marking: e.target.checked, negative_mark_value: e.target.checked ? (form.negative_mark_value ?? null) : null})}
                 />
                 Enable negative marking
               </label>
@@ -178,8 +197,8 @@ export default function CreateQuizPage() {
                 min={0}
                 step={0.01}
                 className="h-10 w-full rounded-md border px-3"
-                value={form.negative_mark_value ?? 0}
-                onChange={(e)=>setForm({...form, negative_mark_value: Number(e.target.value)})}
+                value={form.negative_mark_value ?? ''}
+                onChange={(e)=>setForm({...form, negative_mark_value: e.target.value === '' ? null : Number(e.target.value)})}
                 disabled={!form.negative_marking}
               />
               <p className="text-xs text-slate-500 mt-1">Deduction per wrong answer when enabled.</p>
@@ -250,8 +269,8 @@ export default function CreateQuizPage() {
               <li><span className="text-slate-500">Difficulty:</span> {form.difficulty}</li>
               <li><span className="text-slate-500">Visibility:</span> {form.visibility}</li>
               <li><span className="text-slate-500">Timer:</span> {timerMinutes > 0 ? `${timerMinutes} min` : 'No limit'}</li>
-              <li><span className="text-slate-500">Pricing:</span> {form.is_paid ? `$${(form.price_cents/100).toFixed(2)}` : 'Free'}</li>
-              <li><span className="text-slate-500">Negative marking:</span> {form.negative_marking ? `Yes (-${form.negative_mark_value})` : 'No'}</li>
+              <li><span className="text-slate-500">Pricing:</span> {form.is_paid ? formatTaka(form.price_cents, { fromCents: true }) : 'Free'}</li>
+              <li><span className="text-slate-500">Negative marking:</span> {form.negative_marking ? `Yes (-${form.negative_mark_value ?? '?'})` : 'No'}</li>
             </ul>
           </div>
           <div className="bg-white border rounded-xl p-4">

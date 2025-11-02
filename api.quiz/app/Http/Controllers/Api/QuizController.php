@@ -9,6 +9,7 @@ use App\Models\Quiz;
 use App\Models\Tag;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 /**
@@ -65,7 +66,27 @@ class QuizController extends Controller
     public function index(Request $request)
     {
         $perPage = (int) $request->get('per_page', 15);
-        $quizzes = Quiz::with(['tags', 'category'])->withCount('questions')->paginate($perPage);
+        $user = $request->user();
+
+        $quizzes = Quiz::with(['tags', 'category'])
+            ->withCount('questions')
+            ->when(
+                !$user || !$user->hasAnyRole(['admin', 'superadmin']),
+                function ($query) use ($user) {
+                    if (!$user) {
+                        $query->where('status', 'published')->where('visibility', 'public');
+                    } else {
+                        $query->where(function ($inner) use ($user) {
+                            $inner->where(function ($published) {
+                                $published->where('status', 'published')->where('visibility', 'public');
+                            })->orWhere('owner_id', $user->id);
+                        });
+                    }
+                }
+            )
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
         return response()->json($quizzes);
     }
 
@@ -127,8 +148,26 @@ class QuizController extends Controller
      *   @OA\Response(response=200, description="OK")
      * )
      */
-    public function show(Quiz $quiz)
+    public function show(Request $request, Quiz $quiz)
     {
+        $user = $request->user();
+        if (!$user && $request->bearerToken()) {
+            $user = Auth::guard('sanctum')->user();
+            if ($user) {
+                $request->setUserResolver(static fn () => $user);
+            }
+        }
+
+        $isPublished = $quiz->status === 'published';
+        $isPublic = $quiz->visibility === 'public';
+
+        if (!$isPublished || !$isPublic) {
+            $canView = $user && ($quiz->owner_id === $user->id || $user->hasAnyRole(['admin', 'superadmin']));
+            if (!$canView) {
+                return response()->json(['message' => 'Quiz not found'], Response::HTTP_NOT_FOUND);
+            }
+        }
+
         $quiz->load(['questions', 'tags', 'category']);
         return response()->json($quiz);
     }

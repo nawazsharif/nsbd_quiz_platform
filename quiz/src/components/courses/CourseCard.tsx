@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Play, Star } from 'lucide-react';
 import type { Course } from '@/lib/courses';
+import { formatTaka } from '@/lib/utils';
 
 interface CourseCardProps {
   course: Course;
@@ -10,7 +11,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ course }: CourseCardProps) {
   const isPaid = course.is_paid && Number(course.price_cents ?? 0) > 0;
-  const priceText = isPaid ? `$${(Number(course.price_cents ?? 0) / 100).toFixed(2)}` : 'Free';
+  const priceText = isPaid ? formatTaka(Number(course.price_cents ?? 0), { fromCents: true }) : 'Free';
 
   return (
     <div className="group bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all overflow-hidden">

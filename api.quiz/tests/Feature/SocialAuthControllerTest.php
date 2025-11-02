@@ -25,34 +25,37 @@ class SocialAuthControllerTest extends TestCase
     public function test_redirect_to_google_provider()
     {
         // Mock the Socialite redirect to avoid session issues
-        Socialite::shouldReceive('driver->redirect')
+        Socialite::shouldReceive('driver->stateless->redirect')
             ->andReturn(redirect('https://accounts.google.com/oauth/authorize'));
 
         $response = $this->get('/api/auth/social/google/redirect');
 
-        $response->assertStatus(302);
+        $response->assertStatus(200)
+            ->assertJson(['redirect_url' => 'https://accounts.google.com/oauth/authorize']);
     }
 
     public function test_redirect_to_github_provider()
     {
         // Mock the Socialite redirect to avoid session issues
-        Socialite::shouldReceive('driver->redirect')
+        Socialite::shouldReceive('driver->stateless->redirect')
             ->andReturn(redirect('https://github.com/login/oauth/authorize'));
 
         $response = $this->get('/api/auth/social/github/redirect');
 
-        $response->assertStatus(302);
+        $response->assertStatus(200)
+            ->assertJson(['redirect_url' => 'https://github.com/login/oauth/authorize']);
     }
 
     public function test_redirect_to_facebook_provider()
     {
         // Mock the Socialite redirect to avoid session issues
-        Socialite::shouldReceive('driver->redirect')
+        Socialite::shouldReceive('driver->stateless->redirect')
             ->andReturn(redirect('https://www.facebook.com/v18.0/dialog/oauth'));
 
         $response = $this->get('/api/auth/social/facebook/redirect');
 
-        $response->assertStatus(302);
+        $response->assertStatus(200)
+            ->assertJson(['redirect_url' => 'https://www.facebook.com/v18.0/dialog/oauth']);
     }
 
     public function test_redirect_with_invalid_provider()
@@ -73,7 +76,7 @@ class SocialAuthControllerTest extends TestCase
         $mockSocialiteUser->shouldReceive('getEmail')->andReturn('john@example.com');
         $mockSocialiteUser->shouldReceive('getAvatar')->andReturn('https://example.com/avatar.jpg');
 
-        Socialite::shouldReceive('driver->user')
+        Socialite::shouldReceive('driver->stateless->user')
             ->andReturn($mockSocialiteUser);
 
         $response = $this->get('/api/auth/social/google/callback');
@@ -108,7 +111,7 @@ class SocialAuthControllerTest extends TestCase
         $mockSocialiteUser->shouldReceive('getEmail')->andReturn('jane@example.com');
         $mockSocialiteUser->shouldReceive('getAvatar')->andReturn('https://example.com/avatar.jpg');
 
-        Socialite::shouldReceive('driver->user')
+        Socialite::shouldReceive('driver->stateless->user')
             ->andReturn($mockSocialiteUser);
 
         $response = $this->get('/api/auth/social/github/callback');
@@ -143,7 +146,7 @@ class SocialAuthControllerTest extends TestCase
         $mockSocialiteUser->shouldReceive('getEmail')->andReturn('bob@example.com');
         $mockSocialiteUser->shouldReceive('getAvatar')->andReturn('https://example.com/avatar.jpg');
 
-        Socialite::shouldReceive('driver->user')
+        Socialite::shouldReceive('driver->stateless->user')
             ->andReturn($mockSocialiteUser);
 
         $response = $this->get('/api/auth/social/facebook/callback');
@@ -185,7 +188,7 @@ class SocialAuthControllerTest extends TestCase
         $mockSocialiteUser->shouldReceive('getEmail')->andReturn('existing@example.com');
         $mockSocialiteUser->shouldReceive('getAvatar')->andReturn('https://example.com/avatar.jpg');
 
-        Socialite::shouldReceive('driver->user')
+        Socialite::shouldReceive('driver->stateless->user')
             ->andReturn($mockSocialiteUser);
 
         $response = $this->get('/api/auth/social/google/callback');
@@ -211,14 +214,14 @@ class SocialAuthControllerTest extends TestCase
         $mockSocialiteUser->shouldReceive('getEmail')->andReturn('existing@example.com');
         $mockSocialiteUser->shouldReceive('getAvatar')->andReturn('https://example.com/avatar.jpg');
 
-        Socialite::shouldReceive('driver->user')
+        Socialite::shouldReceive('driver->stateless->user')
             ->andReturn($mockSocialiteUser);
 
         $response = $this->get('/api/auth/social/google/callback');
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Login successful'
+            'message' => 'Account linked successfully'
         ]);
 
         // Check that the user's provider was updated

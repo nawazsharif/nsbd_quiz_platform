@@ -8,6 +8,7 @@ use App\Models\CourseEnrollment;
 use App\Models\PlatformRevenue;
 use App\Models\Setting;
 use App\Models\WalletAccount;
+use App\Services\WalletTransactionService;
 use Illuminate\Http\Request;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Http\Request;
  */
 class CoursePurchaseController extends Controller
 {
-    public function __construct()
+    public function __construct(protected WalletTransactionService $transactions)
     {
         $this->middleware('auth:sanctum');
     }
@@ -69,6 +70,12 @@ class CoursePurchaseController extends Controller
         $authorWallet = WalletAccount::firstOrCreate(['user_id' => $course->owner_id]);
         $authorWallet->balance_cents += $authorShare;
         $authorWallet->save();
+        $this->transactions->record($course->owner_id, 'course_sale', $authorShare, 'completed', [
+            'course_id' => $course->id,
+            'course_title' => $course->title,
+            'buyer_id' => $user->id,
+            'direction' => 'credit',
+        ]);
 
         // Credit platform revenue to superadmin wallet
         $superadmin = \App\Models\User::role('superadmin')->first();
@@ -76,6 +83,14 @@ class CoursePurchaseController extends Controller
             $superadminWallet = WalletAccount::firstOrCreate(['user_id' => $superadmin->id]);
             $superadminWallet->balance_cents += $platformShare;
             $superadminWallet->save();
+            if ($platformShare > 0) {
+                $this->transactions->record($superadmin->id, 'platform_fee', $platformShare, 'completed', [
+                    'source' => 'course_purchase',
+                    'course_id' => $course->id,
+                    'buyer_id' => $user->id,
+                    'direction' => 'credit',
+                ]);
+            }
         }
 
         PlatformRevenue::create([
@@ -86,7 +101,14 @@ class CoursePurchaseController extends Controller
         ]);
 
         CourseEnrollment::firstOrCreate(['course_id' => $course->id, 'user_id' => $user->id]);
+        $this->transactions->record($user->id, 'course_purchase', $price, 'completed', [
+            'course_id' => $course->id,
+            'course_title' => $course->title,
+            'direction' => 'debit',
+            'platform_fee_cents' => $platformShare,
+            'author_share_cents' => $authorShare,
+        ]);
+
         return response()->json(['status' => 'purchased', 'author_credited_cents' => $authorShare, 'platform_revenue_cents' => $platformShare]);
     }
 }
-

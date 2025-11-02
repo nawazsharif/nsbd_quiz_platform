@@ -10,6 +10,7 @@ import SearchModal from './SearchModal';
 import NotificationCenter from './NotificationCenter';
 import { useSession } from 'next-auth/react';
 import { authAPI } from '@/lib/auth-utils';
+import { formatTaka } from '@/lib/utils';
 import {
   Search,
   Bell,
@@ -54,7 +55,7 @@ export default function Topbar({ onMenuToggle, isSidebarOpen, showMenuButton = t
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState<Array<{ id: number|string; title: string; time: string; unread?: boolean }>>([]);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [walletBalanceCents, setWalletBalanceCents] = useState<number | null>(null);
   const [learningCount, setLearningCount] = useState<number | null>(null);
   const [userStats, setUserStats] = useState<{ completedQuizzes: number; totalPoints: number; currentStreak: number; achievements: number }>({ completedQuizzes: 0, totalPoints: 0, currentStreak: 0, achievements: 0 });
 
@@ -99,7 +100,7 @@ export default function Topbar({ onMenuToggle, isSidebarOpen, showMenuButton = t
         try {
           const wb = await authAPI.getWalletBalance(token);
           const cents = (wb?.balance_cents ?? wb?.data?.balance_cents ?? wb?.balance ?? 0);
-          setWalletBalance(Number(cents) / 100);
+          setWalletBalanceCents(Number(cents));
         } catch {}
 
         // Learning count
@@ -225,7 +226,7 @@ export default function Topbar({ onMenuToggle, isSidebarOpen, showMenuButton = t
                 >
                   <Wallet className="h-5 w-5 text-gray-600" />
                   <span className="hidden sm:block text-sm font-medium text-gray-700">
-                    {walletBalance !== null ? `$${walletBalance.toFixed(2)}` : '$0.00'}
+                    {walletBalanceCents !== null ? formatTaka(walletBalanceCents, { fromCents: true }) : formatTaka(0, { fromCents: true })}
                   </span>
                 </Link>
 

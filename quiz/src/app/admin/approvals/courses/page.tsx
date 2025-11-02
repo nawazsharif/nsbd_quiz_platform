@@ -7,6 +7,7 @@ import { usePermissions } from '@/hooks/usePermissions'
 import { PERMISSIONS } from '@/lib/auth'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka } from '@/lib/utils'
 
 export default function CourseApprovalsPage() {
   const { user } = useAuth()
@@ -86,7 +87,7 @@ export default function CourseApprovalsPage() {
               <div key={c.id} className="flex items-center justify-between border rounded-lg p-3">
                 <div>
                   <div className="font-medium text-slate-900">{c.title}</div>
-                  <div className="text-xs text-slate-500">#{c.id} • {c.visibility || 'public'} • {c.is_paid ? `$${((c.price_cents||0)/100).toFixed(2)}` : 'Free'}</div>
+                  <div className="text-xs text-slate-500">#{c.id} • {c.visibility || 'public'} • {c.is_paid ? formatTaka(Number(c.price_cents || 0), { fromCents: true }) : 'Free'}</div>
                 </div>
                 <div className="space-x-2">
                   <button
@@ -115,4 +116,3 @@ export default function CourseApprovalsPage() {
     </div>
   )
 }
-

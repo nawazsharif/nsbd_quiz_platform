@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { coursesAPI, type Course } from '@/lib/courses';
 import { Trash2, ShoppingCart, ArrowRight } from 'lucide-react';
+import { formatTaka } from '@/lib/utils';
 
 type CartItem = { id: number; title: string; price_cents?: number | null; is_paid: boolean };
 
@@ -53,7 +54,7 @@ export default function CourseCartPage() {
                 <div key={item.id} className="p-4 border border-slate-200 rounded-xl flex items-center justify-between">
                   <div>
                     <div className="font-medium text-slate-900">{item.title}</div>
-                    <div className="text-sm text-slate-600">{item.is_paid ? `$${(Number(item.price_cents ?? 0)/100).toFixed(2)}` : 'Free'}</div>
+                    <div className="text-sm text-slate-600">{item.is_paid ? formatTaka(Number(item.price_cents ?? 0), { fromCents: true }) : 'Free'}</div>
                   </div>
                   <button onClick={() => removeItem(item.id)} className="text-slate-500 hover:text-red-600"><Trash2 className="w-5 h-5" /></button>
                 </div>
@@ -62,7 +63,7 @@ export default function CourseCartPage() {
             <div className="border border-slate-200 rounded-2xl p-6">
               <div className="flex items-center justify-between">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="font-semibold">${(subtotal/100).toFixed(2)}</span>
+                <span className="font-semibold">{formatTaka(subtotal, { fromCents: true })}</span>
               </div>
               <button onClick={checkout} className="mt-4 w-full px-4 py-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700">Checkout</button>
               <div className="mt-2 text-xs text-slate-500">Wallet will be used for paid enrollments.</div>

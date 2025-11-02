@@ -27,10 +27,15 @@ export default function MyQuizzesPage() {
   })
 
   const load = async () => {
+    if (!token) {
+      setItems([])
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError('')
     try {
-      const res = await authAPI.getQuizzes(page, 100)
+      const res = await authAPI.getQuizzes(page, 100, undefined, token)
       // Normalize Laravel paginator { data: [], meta: {...} } or raw []
       const list = (res?.data?.data ?? res?.data ?? res) as any
       const all: any[] = (Array.isArray(list?.data) ? list.data : Array.isArray(list) ? list : [])
@@ -42,7 +47,7 @@ export default function MyQuizzesPage() {
     }
   }
 
-  useEffect(() => { load() }, [page])
+  useEffect(() => { load() }, [page, token])
 
   // Sync filter to URL when it changes
   useEffect(() => {
@@ -58,13 +63,13 @@ export default function MyQuizzesPage() {
   const visible = useMemo(() => {
     // Default view: all published + pending
     let list = items as any[]
-    if (statusFilter === 'published') list = list.filter(q => (q.status || (q.published ? 'published' : 'draft')) === 'published')
-    else if (statusFilter === 'pending_review') list = list.filter(q => (q.status === 'pending_review' || q.status === 'waiting'))
-    else if (statusFilter === 'my_drafts') list = list.filter(q => isOwner(q) && (q.status || 'draft') === 'draft')
+    if (statusFilter === 'published') list = list.filter(q => String(q.status || (q.published ? 'published' : 'draft')).toLowerCase() === 'published')
+    else if (statusFilter === 'pending_review') list = list.filter(q => ['pending_review','waiting'].includes(String(q.status || '').toLowerCase()))
+    else if (statusFilter === 'my_drafts') list = list.filter(q => isOwner(q) && String(q.status || '').toLowerCase() === 'draft')
     else if (statusFilter === 'my_rejected') list = list.filter(q => isOwner(q) && (q.status || '') === 'rejected')
     else list = list.filter(q => {
-      const s = (q.status || (q.published ? 'published' : 'draft')) as string
-      return s === 'published' || s === 'pending_review' || s === 'waiting'
+      const s = String(q.status || (q.published ? 'published' : 'draft')).toLowerCase()
+      return ['published','pending_review','waiting'].includes(s)
     })
     return list
   }, [items, statusFilter])

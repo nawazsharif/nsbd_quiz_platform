@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 </div>
                 <MoreHorizontal className="w-5 h-5 text-gray-400" />
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">$1k</div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">৳1k</div>
               <div className="text-sm text-gray-600 mb-2">Total Sales</div>
               <div className="text-xs text-gray-500">+8% from yesterday</div>
             </div>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">$45,000</p>
+                  <p className="font-semibold text-gray-800">৳45,000</p>
                   <div className="w-16 h-2 bg-gray-200 rounded-full mt-1">
                     <div className="w-12 h-2 bg-blue-500 rounded-full"></div>
                   </div>
@@ -366,7 +366,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">$29,000</p>
+                  <p className="font-semibold text-gray-800">৳29,000</p>
                   <div className="w-16 h-2 bg-gray-200 rounded-full mt-1">
                     <div className="w-10 h-2 bg-green-500 rounded-full"></div>
                   </div>
@@ -383,7 +383,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">$18,000</p>
+                  <p className="font-semibold text-gray-800">৳18,000</p>
                   <div className="w-16 h-2 bg-gray-200 rounded-full mt-1">
                     <div className="w-8 h-2 bg-purple-500 rounded-full"></div>
                   </div>
@@ -400,7 +400,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">$25,000</p>
+                  <p className="font-semibold text-gray-800">৳25,000</p>
                   <div className="w-16 h-2 bg-gray-200 rounded-full mt-1">
                     <div className="w-9 h-2 bg-orange-500 rounded-full"></div>
                   </div>

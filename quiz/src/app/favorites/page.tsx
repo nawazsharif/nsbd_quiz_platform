@@ -7,6 +7,7 @@ import { Heart, BookOpen, Clock, DollarSign, GraduationCap, Info } from 'lucide-
 import PageHeader from '@/components/dashboard/PageHeader'
 import BookmarkButton from '@/components/ui/BookmarkButton'
 import { authAPI } from '@/lib/auth-utils'
+import { formatTaka, stripHtmlTags } from '@/lib/utils'
 
 type Quiz = {
   id: number
@@ -41,17 +42,17 @@ export default function FavoritesPage() {
       setLoading(false)
       return
     }
-    
+
     setLoading(true)
     setError('')
     try {
       const token = (session as any)?.accessToken as string
       const res = await authAPI.getBookmarkedQuizzes(token)
-      
+
       // The API returns paginated data with bookmarks containing quiz objects
       const bookmarks = res?.data || []
       const quizzes = bookmarks.map((bookmark: Bookmark) => bookmark.quiz).filter(Boolean)
-      
+
       setQuizzes(quizzes)
     } catch (e: any) {
       setError(e.message || 'Failed to load bookmarked quizzes')
@@ -100,7 +101,7 @@ export default function FavoritesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       <PageHeader title="Favorites" subtitle="Your bookmarked content" />
-      
+
       {error && (
         <div className="mb-4 rounded-md border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">
           {error}
@@ -113,7 +114,7 @@ export default function FavoritesPage() {
           <GraduationCap className="w-5 h-5 text-emerald-600" />
           <h2 className="text-lg font-semibold text-slate-800">Bookmarked Courses</h2>
         </div>
-        
+
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
           <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800">
@@ -146,14 +147,14 @@ export default function FavoritesPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <Link href={`/quizzes/${quiz.id}`} className="text-lg font-semibold text-slate-800 hover:text-emerald-600 line-clamp-2">
-                      {quiz.title}
+                      {stripHtmlTags(quiz.title)}
                     </Link>
                     {quiz.description && (
-                      <p className="text-sm text-slate-600 mt-1 line-clamp-2">{quiz.description}</p>
+                      <p className="text-sm text-slate-600 mt-1 line-clamp-2">{stripHtmlTags(quiz.description)}</p>
                     )}
                   </div>
-                  <BookmarkButton 
-                    quizId={quiz.id} 
+                  <BookmarkButton
+                    quizId={quiz.id}
                     onBookmarkChange={(isBookmarked) => {
                       if (!isBookmarked) {
                         handleBookmarkRemoved(quiz.id)
@@ -185,13 +186,13 @@ export default function FavoritesPage() {
                     {quiz.is_paid ? (
                       <span className="flex items-center gap-1 text-emerald-600 font-medium">
                         <DollarSign className="w-4 h-4" />
-                        ${((quiz.price_cents || 0) / 100).toFixed(2)}
+                        {formatTaka(Number(quiz.price_cents || 0), { fromCents: true })}
                       </span>
                     ) : (
                       <span className="text-emerald-600 font-medium">Free</span>
                     )}
                   </div>
-                  <Link 
+                  <Link
                     href={`/quizzes/${quiz.id}`}
                     className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
                   >

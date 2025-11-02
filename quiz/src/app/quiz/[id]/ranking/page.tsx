@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import QuizNavigation from '@/components/navigation/QuizNavigation'
+import { stripHtmlTags } from '@/lib/utils'
 
 type QuizRankingData = {
   quiz: {
@@ -201,7 +202,7 @@ export default function QuizRankingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Quiz Ranking</h1>
-          <p className="text-slate-600">{quiz.title}</p>
+          <p className="text-slate-600">{stripHtmlTags(quiz.title)}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -224,7 +225,7 @@ export default function QuizRankingPage() {
               </div>
             )}
             {quiz.description && (
-              <p className="text-slate-700 mb-4">{quiz.description}</p>
+              <p className="text-slate-700 mb-4">{stripHtmlTags(quiz.description)}</p>
             )}
             <div className="flex items-center gap-4 text-sm text-slate-600">
               <div className="flex items-center gap-1">

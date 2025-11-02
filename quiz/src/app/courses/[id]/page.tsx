@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { coursesAPI, type Course } from '@/lib/courses';
 import { Play, ShoppingCart, Shield, Star, Clock } from 'lucide-react';
 import AddToCartButton from '@/components/courses/AddToCartButton';
+import { formatTaka } from '@/lib/utils';
 
 export default function CourseDetailsPage() {
   const params = useParams();
@@ -53,7 +54,7 @@ export default function CourseDetailsPage() {
   }
 
   const isPaid = course.is_paid && Number(course.price_cents ?? 0) > 0;
-  const priceText = isPaid ? `$${(Number(course.price_cents ?? 0) / 100).toFixed(2)}` : 'Free';
+  const priceText = isPaid ? formatTaka(Number(course.price_cents ?? 0), { fromCents: true }) : 'Free';
 
   return (
     <div className="min-h-screen bg-white">

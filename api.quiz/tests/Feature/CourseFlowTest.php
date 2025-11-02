@@ -112,5 +112,15 @@ class CourseFlowTest extends TestCase
         // 75% of 2000 = 1500
         $this->assertEquals(1500, $authorWallet->balance_cents);
         $this->assertDatabaseHas('platform_revenues', ['course_id' => $paid->id, 'source' => 'course_purchase', 'amount_cents' => 500]);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'user_id' => $buyer->id,
+            'type' => 'course_purchase',
+            'amount_cents' => 2000,
+        ]);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'user_id' => $author->id,
+            'type' => 'course_sale',
+            'amount_cents' => 1500,
+        ]);
     }
 }

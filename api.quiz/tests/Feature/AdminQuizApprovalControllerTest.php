@@ -68,6 +68,6 @@ class AdminQuizApprovalControllerTest extends TestCase
 
         $this->postJson("/api/admin/quizzes/{$quiz->id}/reject")
             ->assertStatus(200)
-            ->assertJson(['status' => 'draft']);
+            ->assertJson(['status' => 'rejected']);
     }
 }
