@@ -22,6 +22,8 @@ import {
 import Link from 'next/link'
 import QuizNavigation from '@/components/navigation/QuizNavigation'
 import { stripHtmlTags } from '@/lib/utils'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import BackButton from '@/components/ui/BackButton'
 
 type QuizRankingData = {
   quiz: {
@@ -191,12 +193,16 @@ export default function QuizRankingPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       {/* Navigation */}
-      <QuizNavigation
-        quizId={quizId}
-        quizTitle={quiz.title}
-        returnTo={returnTo}
-        currentPage="ranking"
-      />
+      <div className="space-y-4">
+        <BackButton fallbackUrl={`/quiz/${quizId}`} label="Back to Quiz" />
+        <Breadcrumb
+          items={[
+            { label: 'Quizzes', href: '/quizzes' },
+            { label: stripHtmlTags(quiz.title), href: `/quiz/${quizId}` },
+            { label: 'Ranking' }
+          ]}
+        />
+      </div>
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -334,15 +340,15 @@ export default function QuizRankingPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correct</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wrong</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Rank</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Score</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Correct</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Wrong</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Time</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -364,8 +370,8 @@ export default function QuizRankingPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{entry.user.name}</div>
-                    <div className="text-sm text-gray-500">{entry.user.email}</div>
+                    <div className="font-medium text-slate-900">{entry.user.name}</div>
+                    <div className="text-sm text-slate-600">{entry.user.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`text-sm font-semibold ${getScoreColor(entry.score)}`}>
@@ -380,10 +386,10 @@ export default function QuizRankingPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {entry.correct_answers}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-medium">
                     {entry.incorrect_answers}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-medium">
                     {entry.time_spent_formatted}
                   </td>
                 </tr>
@@ -394,10 +400,10 @@ export default function QuizRankingPage() {
 
         {ranking.length === 0 && (
           <div className="px-6 py-8 text-center">
-            <div className="text-gray-500 mb-4">
-              <Trophy className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Rankings Yet</h3>
-              <p className="text-gray-600">Be the first to complete this quiz and appear on the leaderboard!</p>
+            <div className="mb-4">
+              <Trophy className="w-16 h-16 mx-auto mb-4 text-emerald-500" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">No Rankings Yet</h3>
+              <p className="text-slate-700">Be the first to complete this quiz and appear on the leaderboard!</p>
             </div>
             <Link
               href={`/quiz/${quiz.id}/take${returnTo ? `?return=${encodeURIComponent(returnTo)}` : ''}`}

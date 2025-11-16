@@ -285,9 +285,9 @@ export default function EnrolledQuizzesPage() {
       <div className="space-y-4">
         {filteredEnrollments.length === 0 ? (
           <div className="bg-white border rounded-xl p-8 text-center">
-            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Quizzes Found</h3>
-            <p className="text-gray-600 mb-4">
+            <BookOpen className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No Quizzes Found</h3>
+            <p className="text-slate-700 mb-4">
               {enrollments.length === 0
                 ? "You haven't enrolled in any quizzes yet."
                 : "No quizzes match your current filters."

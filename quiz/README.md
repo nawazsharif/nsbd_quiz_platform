@@ -32,7 +32,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The frontend communicates with the Laravel API backend located at `/api.quiz`. In Docker, API requests are proxied through Next.js using the `/backend` rewrite which targets the `backend` service on the internal network. For local non-Docker usage, you can point `NEXT_PUBLIC_API_URL` directly to `http://api.quiz.test/api`.
+The frontend communicates with the Laravel API backend located at `/api.quiz`. In Docker, API requests are proxied through Next.js using the `/backend` rewrite which targets the `backend` service on the internal network. For local non-Docker usage, you can point `NEXT_PUBLIC_API_URL` directly to `https://api.quiz.test/api`.
 
 ## Learn More
 

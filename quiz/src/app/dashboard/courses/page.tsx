@@ -99,9 +99,9 @@ export default function MyCoursesPage() {
                 <tbody>
                   {visible.map((c) => (
                     <tr key={c.id} className="border-t">
-                      <td className="px-4 py-2 text-slate-900">{c.title}</td>
-                      <td className="px-4 py-2 capitalize">{c.visibility || 'public'}</td>
-                      <td className="px-4 py-2">{c.is_paid ? formatTaka(Number(c.price_cents || 0), { fromCents: true }) : 'Free'}</td>
+                      <td className="px-4 py-2 text-slate-900 font-medium">{c.title}</td>
+                      <td className="px-4 py-2 capitalize text-slate-700">{c.visibility || 'public'}</td>
+                      <td className="px-4 py-2 text-slate-900">{c.is_paid ? formatTaka(Number(c.price_cents || 0), { fromCents: true }) : 'Free'}</td>
                       <td className="px-4 py-2">
                         {(() => {
                           const s = (c.status || 'draft').toLowerCase()

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { authAPI } from '@/lib/auth-utils'
 import { formatTaka } from '@/lib/utils'
 import PageHeader from '@/components/dashboard/PageHeader'
@@ -133,7 +134,15 @@ export default function WalletPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <PageHeader title="Wallet" subtitle="Manage balance, recharge and withdrawals" />
+      <div className="flex justify-between items-center">
+        <PageHeader title="Wallet" subtitle="Manage balance, recharge and withdrawals" />
+        <Link
+          href="/wallet/transactions"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+        >
+          📊 Transaction History
+        </Link>
+      </div>
       <div className="bg-white border rounded-xl p-4">
         {notice && <div className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 px-3 py-2 text-sm">{notice}</div>}
         {error && <div className="mb-3 rounded-md border border-red-200 bg-red-50 text-red-700 px-3 py-2 text-sm">{error}</div>}

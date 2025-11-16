@@ -9,6 +9,7 @@ import { ArrowLeft, Clock, Play, RotateCcw, Save, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import QuizNavigation from '@/components/navigation/QuizNavigation'
 import { stripHtmlTags } from '@/lib/utils'
+import { useToast } from '@/hooks/useToast'
 
 type Question = any
 
@@ -17,6 +18,7 @@ export default function TakeQuizPage() {
   const router = useRouter()
   const search = useSearchParams()
   const { data: session, status } = useSession()
+  const { success, error: showError } = useToast()
   const quizId = params?.id as string
   const [quiz, setQuiz] = useState<any>(null)
   const [questions, setQuestions] = useState<Question[]>([])
@@ -32,6 +34,7 @@ export default function TakeQuizPage() {
   const [startTime] = useState(new Date())
   const [showResumeDialog, setShowResumeDialog] = useState(false)
   const [existingAttempt, setExistingAttempt] = useState<QuizAttempt | null>(null)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const returnTo = search?.get('return') || ''
   const wantsRetake = search?.get('retake') === '1'
 
@@ -384,13 +387,16 @@ export default function TakeQuizPage() {
         const timeSpent = Math.floor((new Date().getTime() - startTime.getTime()) / 1000)
 
         const submitResponse = await authAPI.submitQuizAttempt(token, attempt.id, answers, timeSpent)
+        success('Quiz submitted successfully!')
 
         // Redirect to results page after successful submission
         const base = `/quiz/${quiz?.id}/results?attempt=${attempt.id}`
         router.push(returnTo ? `${base}&return=${encodeURIComponent(returnTo)}` : base)
         return
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Failed to submit attempt:', error)
+        showError(error?.message || 'Failed to submit quiz. Please try again.')
+        return
       }
     }
 
@@ -523,6 +529,37 @@ export default function TakeQuizPage() {
         </div>
       )}
 
+      {/* Exit Confirmation Dialog */}
+      {showExitConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Exit Quiz?
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Your progress has been saved. You can resume this quiz later from where you left off.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Continue Quiz
+              </button>
+              <button
+                onClick={() => {
+                  saveProgress(true)
+                  router.push(`/quiz/${quizId}${returnTo ? `?return=${encodeURIComponent(returnTo)}` : ''}`)
+                }}
+                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Exit Quiz
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900">{stripHtmlTags(quiz.title)}</h1>
@@ -539,7 +576,13 @@ export default function TakeQuizPage() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          {remaining !== null && <div className="text-sm font-medium">Time: {Math.max(0, Math.floor(remaining/60))}:{String(Math.max(0, remaining%60)).padStart(2,'0')}</div>}
+          {remaining !== null && <div className="text-sm font-medium text-slate-700">Time: {Math.max(0, Math.floor(remaining/60))}:{String(Math.max(0, remaining%60)).padStart(2,'0')}</div>}
+          <button
+            onClick={() => setShowExitConfirm(true)}
+            className="h-9 px-3 rounded-md border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            Exit
+          </button>
           {!submitted ? (
             <button onClick={handleSubmit} className="h-9 px-3 rounded-md bg-emerald-600 text-white hover:bg-emerald-700">Submit</button>
           ) : (

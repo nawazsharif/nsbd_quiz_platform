@@ -5,6 +5,7 @@ import { signIn, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/useToast';
 
 function SignInForm() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { success, error: showError } = useToast();
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,16 +32,21 @@ function SignInForm() {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
+        const errorMsg = 'Invalid email or password';
+        setError(errorMsg);
+        showError(errorMsg);
       } else {
         // Get updated session
         const session = await getSession();
         if (session) {
+          success('Successfully signed in!');
           router.push(callbackUrl);
         }
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      const errorMsg = 'An error occurred. Please try again.';
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setIsLoading(false);
     }

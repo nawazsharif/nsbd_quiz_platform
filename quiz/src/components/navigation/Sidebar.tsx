@@ -30,6 +30,8 @@ const FolderIcon = (props: any) => (<svg viewBox="0 0 24 24" width="1em" height=
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 interface NavItem {
@@ -48,12 +50,11 @@ interface NavGroup {
   superAdminOnly?: boolean;
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
   const { permissions } = usePermissions();
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['main', 'create', 'content management', 'user management']);
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navigationGroups: NavGroup[] = [
     {
@@ -97,7 +98,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       permission: 'view_analytics',
       items: [
         { name: 'Dashboard', href: '/analytics', icon: BarChart3, permission: 'view_analytics' },
-        { name: 'Earnings', href: '/earnings', icon: Wallet, permission: 'view_analytics' },
+        { name: 'My Revenue', href: '/dashboard/revenue', icon: Wallet, permission: 'view_analytics' },
         { name: 'Performance', href: '/performance', icon: TrendingUp, permission: 'view_analytics' },
       ]
     },
@@ -108,6 +109,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: 'Roles', href: '/admin/roles', icon: Settings, superAdminOnly: true },
         { name: 'Permissions', href: '/admin/permissions', icon: FileCheck, superAdminOnly: true },
         { name: 'Users', href: '/admin/users', icon: Users, superAdminOnly: true },
+        { name: 'Platform Revenue', href: '/admin/revenue', icon: BarChart3, superAdminOnly: true },
         { name: 'Approval Settings', href: '/admin/settings/approval', icon: Settings, superAdminOnly: true },
         { name: 'Platform Charge', href: '/admin/settings/platform-charge', icon: Settings, superAdminOnly: true },
         { name: 'Payment Settings', href: '/admin/settings/payments', icon: Wallet, superAdminOnly: true },
@@ -117,6 +119,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       name: 'Account',
       items: [
         { name: 'Wallet', href: '/wallet', icon: Wallet },
+        { name: 'Transactions', href: '/wallet/transactions', icon: FileCheck },
         { name: 'Settings', href: '/settings', icon: Settings },
         { name: 'Help & Support', href: '/help', icon: HelpCircle },
       ]
@@ -179,7 +182,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               </h2>
             )}
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={onToggleCollapse}
               className="hidden lg:flex p-2 rounded-lg hover:bg-gray-100 transition-colors"
               title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >

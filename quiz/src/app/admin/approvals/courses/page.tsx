@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import PageHeader from '@/components/dashboard/PageHeader'
 import { useAuth } from '@/contexts/AuthContext'
 import { usePermissions } from '@/hooks/usePermissions'
@@ -8,6 +9,7 @@ import { PERMISSIONS } from '@/lib/auth'
 import { useSession } from 'next-auth/react'
 import { authAPI } from '@/lib/auth-utils'
 import { formatTaka } from '@/lib/utils'
+import { Eye } from 'lucide-react'
 
 export default function CourseApprovalsPage() {
   const { user } = useAuth()
@@ -84,19 +86,36 @@ export default function CourseApprovalsPage() {
         ) : (
           <div className="space-y-3">
             {items.map((c)=> (
-              <div key={c.id} className="flex items-center justify-between border rounded-lg p-3">
-                <div>
-                  <div className="font-medium text-slate-900">{c.title}</div>
-                  <div className="text-xs text-slate-500">#{c.id} • {c.visibility || 'public'} • {c.is_paid ? formatTaka(Number(c.price_cents || 0), { fromCents: true }) : 'Free'}</div>
+              <div key={c.id} className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-slate-900 text-lg mb-1">{c.title}</h3>
+                    <div className="flex items-center gap-3 text-sm text-slate-600">
+                      <span className="inline-flex items-center">ID: #{c.id}</span>
+                      <span className="inline-flex items-center capitalize">{c.visibility || 'public'}</span>
+                      <span className="inline-flex items-center font-medium">{c.is_paid ? formatTaka(Number(c.price_cents || 0), { fromCents: true }) : 'Free'}</span>
+                    </div>
+                    {c.summary && (
+                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{c.summary}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-x-2">
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/courses/${c.id}`}
+                    target="_blank"
+                    className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Preview Course
+                  </Link>
                   <button
                     onClick={async ()=>{
                       if (!token) return
                       setError(''); setNotice('')
                       try { await authAPI.approveCourse(token, c.id); setItems(prev=>prev.filter(it=>it.id!==c.id)); setNotice('Course approved') } catch(e:any){ setError(e.message||'Failed to approve') }
                     }}
-                    className="h-8 px-3 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="h-9 px-4 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 font-medium"
                   >Approve</button>
                   <button
                     onClick={async ()=>{
@@ -105,7 +124,7 @@ export default function CourseApprovalsPage() {
                       setError(''); setNotice('')
                       try { await authAPI.rejectCourse(token, c.id, reason); setItems(prev=>prev.filter(it=>it.id!==c.id)); setNotice('Course rejected') } catch(e:any){ setError(e.message||'Failed to reject') }
                     }}
-                    className="h-8 px-3 rounded-md border text-gray-900 hover:bg-gray-50"
+                    className="h-9 px-4 rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 font-medium"
                   >Reject</button>
                 </div>
               </div>

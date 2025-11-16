@@ -16,6 +16,7 @@ interface NavigationLayoutProps {
 export default function NavigationLayout({ children }: NavigationLayoutProps) {
   const { isLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const pathname = usePathname();
   const hideForQuizTake = /^\/quiz\/[^/]+\/take(\/|$)?/.test(pathname);
 
@@ -59,7 +60,11 @@ export default function NavigationLayout({ children }: NavigationLayoutProps) {
   }
 
   // Fullscreen learning layout: keep Topbar but hide Sidebar/Sticky/Mobile nav
-  if (pathname.startsWith('/learning')) {
+  // EXCEPT for enrolled pages which should show the sidebar
+  const isEnrolledPage = pathname.startsWith('/learning/quizzes/enrolled') ||
+                         pathname.startsWith('/learning/courses/enrolled');
+
+  if (pathname.startsWith('/learning') && !isEnrolledPage) {
     return (
       <div className="min-h-screen bg-white">
         <Topbar
@@ -92,6 +97,8 @@ export default function NavigationLayout({ children }: NavigationLayoutProps) {
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
       )}
 
@@ -99,7 +106,7 @@ export default function NavigationLayout({ children }: NavigationLayoutProps) {
       {!hideForQuizTake && <StickyNavigation />}
 
       {/* Main content */}
-      <div className={shouldShowSidebar ? "lg:ml-64" : ""}>
+      <div className={shouldShowSidebar ? (isSidebarCollapsed ? "lg:ml-16" : "lg:ml-64") : ""}>
         <main className="min-h-screen">
           {children}
         </main>

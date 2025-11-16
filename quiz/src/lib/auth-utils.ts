@@ -448,6 +448,170 @@ export const authAPI = {
     return data
   },
 
+  // Dashboard
+  async getDashboardStats(token: string) {
+    const res = await fetch(`${API_BASE_URL}/dashboard/stats`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch dashboard stats')
+    return data
+  },
+
+  // Transaction Logs
+  async getTransactionLogs(token: string, params?: {
+    user_id?: number
+    type?: string
+    status?: string
+    from?: string
+    to?: string
+    direction?: 'credit' | 'debit'
+    per_page?: number
+    page?: number
+  }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/transaction-logs${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch transaction logs')
+    return data
+  },
+
+  async getTransactionSummary(token: string, params?: { user_id?: number; from?: string; to?: string }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/transaction-logs/summary${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch transaction summary')
+    return data
+  },
+
+  async getTransactionDetail(token: string, id: number) {
+    const res = await fetch(`${API_BASE_URL}/transaction-logs/${id}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch transaction detail')
+    return data
+  },
+
+  // Revenue Analytics
+  async getPlatformRevenue(token: string, params?: { from?: string; to?: string; source?: string; per_page?: number; page?: number }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/revenue/platform${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch platform revenue')
+    return data
+  },
+
+  async getPlatformRevenueBreakdown(token: string, params?: { from?: string; to?: string }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/revenue/platform/breakdown${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch platform revenue breakdown')
+    return data
+  },
+
+  async getMyQuizRevenue(token: string, params?: { from?: string; to?: string; per_page?: number; page?: number }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/revenue/my-quizzes${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch quiz revenue')
+    return data
+  },
+
+  async getMyCourseRevenue(token: string, params?: { from?: string; to?: string; per_page?: number; page?: number }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/revenue/my-courses${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch course revenue')
+    return data
+  },
+
+  async getQuizPurchases(token: string, quizId: number, params?: { per_page?: number; page?: number }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/revenue/quiz/${quizId}/purchases${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch quiz purchases')
+    return data
+  },
+
+  async getCoursePurchases(token: string, courseId: number, params?: { per_page?: number; page?: number }) {
+    const queryString = params ? '?' + new URLSearchParams(
+      Object.entries(params).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value)
+        }
+        return acc
+      }, {} as Record<string, string>)
+    ).toString() : ''
+    const res = await fetch(`${API_BASE_URL}/revenue/course/${courseId}/purchases${queryString}`, {
+      headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || 'Failed to fetch course purchases')
+    return data
+  },
+
   // Settings (superadmin)
   async getQuizSettings(token: string) {
     const res = await fetch(`${API_BASE_URL}/settings/quiz`, { headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` } })
@@ -1165,6 +1329,66 @@ export const authAPI = {
 
     const data = await response.json()
     if (!response.ok) throw new Error(data?.message || 'Failed to remove quiz bookmark')
+    return data
+  },
+
+  // Course Bookmark functions
+  async getBookmarkedCourses(token: string, page = 1, perPage = 20) {
+    const sp = new URLSearchParams()
+    sp.append('page', String(page))
+    sp.append('per_page', String(perPage))
+
+    const response = await fetch(`${API_BASE_URL}/course-bookmarks?${sp.toString()}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data?.message || 'Failed to fetch bookmarked courses')
+    return data
+  },
+
+  async toggleCourseBookmark(token: string, courseId: string|number) {
+    const response = await fetch(`${API_BASE_URL}/course-bookmarks/toggle/${courseId}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data?.message || 'Failed to toggle course bookmark')
+    return data
+  },
+
+  async checkCourseBookmark(token: string, courseId: string|number) {
+    const response = await fetch(`${API_BASE_URL}/course-bookmarks/check/${courseId}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data?.message || 'Failed to check course bookmark')
+    return data
+  },
+
+  async removeCourseBookmark(token: string, courseId: string|number) {
+    const response = await fetch(`${API_BASE_URL}/course-bookmarks/${courseId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    const data = await response.json()
+    if (!response.ok) throw new Error(data?.message || 'Failed to remove course bookmark')
     return data
   }
 };

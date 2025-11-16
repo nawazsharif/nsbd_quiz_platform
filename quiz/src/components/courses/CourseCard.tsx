@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Play, Star } from 'lucide-react';
 import type { Course } from '@/lib/courses';
 import { formatTaka } from '@/lib/utils';
+import CourseBookmarkButton from '@/components/ui/CourseBookmarkButton';
 
 interface CourseCardProps {
   course: Course;
@@ -16,13 +17,16 @@ export default function CourseCard({ course }: CourseCardProps) {
   return (
     <div className="group bg-white rounded-2xl border border-gray-200 hover:shadow-xl transition-all overflow-hidden">
       <Link href={`/courses/${course.id}`} className="block">
-        <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
+        <div className="aspect-[16/9] bg-gray-100 overflow-hidden relative">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={course.cover_url || '/window.svg'}
             alt={course.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          <div className="absolute top-2 right-2 z-10" onClick={(e) => e.preventDefault()}>
+            <CourseBookmarkButton courseId={course.id} />
+          </div>
         </div>
         <div className="p-4">
           <div className="flex items-start justify-between gap-2">

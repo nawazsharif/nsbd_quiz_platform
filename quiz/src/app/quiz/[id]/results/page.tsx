@@ -24,6 +24,8 @@ import {
 import Link from 'next/link'
 import QuizNavigation from '@/components/navigation/QuizNavigation'
 import { stripHtmlTags } from '@/lib/utils'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import BackButton from '@/components/ui/BackButton'
 
 type Question = {
   id: number
@@ -315,12 +317,16 @@ export default function QuizResultsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Navigation */}
-      <QuizNavigation
-        quizId={quizId}
-        quizTitle={quiz.title}
-        returnTo={returnTo}
-        currentPage="results"
-      />
+      <div className="space-y-4">
+        <BackButton fallbackUrl={`/quiz/${quizId}`} label="Back to Quiz" />
+        <Breadcrumb
+          items={[
+            { label: 'Quizzes', href: '/quizzes' },
+            { label: stripHtmlTags(quiz.title), href: `/quiz/${quizId}` },
+            { label: 'Results' }
+          ]}
+        />
+      </div>
 
       {/* Header */}
       <div className="flex items-center justify-between">

@@ -143,6 +143,10 @@ export default function EnrolledQuizzesPage() {
     return `${minutes} minutes`
   }
 
+  const stripHtmlTags = (html: string) => {
+    return html.replace(/<[^>]*>/g, '').trim()
+  }
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -287,13 +291,13 @@ export default function EnrolledQuizzesPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-slate-900">{enrollment.quiz.title}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900">{stripHtmlTags(enrollment.quiz.title)}</h3>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDifficultyColor(enrollment.quiz.difficulty)}`}>
                       {enrollment.quiz.difficulty || 'Unknown'}
                     </span>
                   </div>
                   {enrollment.quiz.description && (
-                    <p className="text-slate-600 mb-3">{enrollment.quiz.description}</p>
+                    <p className="text-slate-600 mb-3">{stripHtmlTags(enrollment.quiz.description)}</p>
                   )}
                   <div className="flex items-center gap-4 text-sm text-slate-500">
                     <div className="flex items-center gap-1">

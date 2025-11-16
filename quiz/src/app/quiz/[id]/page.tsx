@@ -10,12 +10,16 @@ import PageHeader from '@/components/dashboard/PageHeader'
 import ReviewSection from '@/components/quiz/ReviewSection'
 import ShareQuiz from '@/components/quiz/ShareQuiz'
 import BookmarkButton from '@/components/ui/BookmarkButton'
+import Breadcrumb from '@/components/ui/Breadcrumb'
+import BackButton from '@/components/ui/BackButton'
+import { useToast } from '@/hooks/useToast'
 
 export default function QuizDetailsPage() {
   const params = useParams()
   const search = useSearchParams()
   const router = useRouter()
   const { data: session } = useSession()
+  const { success, error: showError } = useToast()
   const id = params?.id as string
   const [quiz, setQuiz] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -58,7 +62,9 @@ export default function QuizDetailsPage() {
         }
       }
     } catch (e: any) {
-      setError(e.message || 'Failed to load quiz')
+      const errorMsg = e.message || 'Failed to load quiz'
+      setError(errorMsg)
+      showError(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -74,9 +80,12 @@ export default function QuizDetailsPage() {
         // Refresh enrollment status
         const enrollment = await authAPI.checkQuizEnrollment(token, id)
         setEnrollmentStatus(enrollment)
+        success('Successfully enrolled in quiz!')
       }
     } catch (e: any) {
-      setError(e.message || 'Failed to enroll in quiz')
+      const errorMsg = e.message || 'Failed to enroll in quiz'
+      setError(errorMsg)
+      showError(errorMsg)
     } finally {
       setEnrolling(false)
     }
@@ -86,18 +95,35 @@ export default function QuizDetailsPage() {
 
   if (loading) return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <PageHeader title="Quiz" />
-      <div className="bg-white border rounded-xl p-6">
-        <div className="animate-pulse space-y-3">
-          <div className="h-4 bg-slate-200 rounded w-1/3" />
+      <div className="bg-white border rounded-xl p-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-slate-200 rounded w-1/3" />
           <div className="h-4 bg-slate-200 rounded w-2/3" />
           <div className="h-4 bg-slate-200 rounded w-full" />
+          <div className="h-4 bg-slate-200 rounded w-4/5" />
         </div>
       </div>
     </div>
   )
-  if (error) return <div className="max-w-7xl mx-auto px-4 py-6 text-red-600">{error}</div>
-  if (!quiz) return <div className="max-w-7xl mx-auto px-4 py-6">Quiz not found</div>
+  if (error || !quiz) return (
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BookmarkButton quizId={parseInt(id) || 0} showLabel={false} />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Quiz Not Available</h2>
+        <p className="text-slate-600 mb-6">{error || 'The quiz you\'re looking for doesn\'t exist or has been removed.'}</p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href="/quizzes" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-all">
+            Browse Quizzes
+          </Link>
+          <button onClick={() => router.back()} className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 font-medium transition-all">
+            Go Back
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   const baseTakeUrl = hasCompletedAttempt
     ? `/quiz/${quiz.id}/take?retake=1`
@@ -109,6 +135,17 @@ export default function QuizDetailsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      {/* Navigation */}
+      <div className="space-y-4">
+        <BackButton fallbackUrl="/quizzes" label="Back to Quizzes" />
+        <Breadcrumb
+          items={[
+            { label: 'Quizzes', href: '/quizzes' },
+            { label: stripHtmlTags(quiz.title || 'Quiz') }
+          ]}
+        />
+      </div>
+
       <PageHeader
         title={stripHtmlTags(quiz.title || 'Quiz')}
         subtitle={quiz.description ? stripHtmlTags(String(quiz.description)).slice(0, 140) : undefined}
@@ -159,12 +196,14 @@ export default function QuizDetailsPage() {
         </div>
       </div>
 
-      {/* Reviews Section */}
-      <ReviewSection
-        quizId={quiz.id}
-        canReview={true}
-        showCreateForm={false}
-      />
+      {/* Reviews Section - Only show for paid quizzes */}
+      {quiz.is_paid && Number(quiz.price_cents || 0) > 0 && (
+        <ReviewSection
+          quizId={quiz.id}
+          canReview={true}
+          showCreateForm={false}
+        />
+      )}
     </div>
   )
 }

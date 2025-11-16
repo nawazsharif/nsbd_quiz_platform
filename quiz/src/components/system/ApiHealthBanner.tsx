@@ -57,7 +57,7 @@ export default function ApiHealthBanner() {
               {message}
               <ul className="list-disc ml-5 mt-1">
                 <li>If using proxy (default), set API_PROXY_TARGET to your Laravel host (e.g., http://api.quiz.test) and restart</li>
-                <li>Or set NEXT_PUBLIC_API_URL to your API (e.g., http://api.quiz.test/api) for direct access</li>
+                <li>Or set NEXT_PUBLIC_API_URL to your API (e.g., https://api.quiz.test/api) for direct access</li>
                 <li>Ensure the Laravel server is running and accessible</li>
               </ul>
             </div>

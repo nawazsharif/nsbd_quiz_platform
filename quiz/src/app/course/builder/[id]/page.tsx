@@ -29,12 +29,22 @@ export default function CourseBuilderPage() {
   const [selectedQuizId, setSelectedQuizId] = useState<string>('')
   const [newQuiz, setNewQuiz] = useState({ title: '', description: '', difficulty: 'medium', timer_seconds: 1800 })
   const [saving, setSaving] = useState(false)
-  
+
   // Quiz question management states
   const [questions, setQuestions] = useState<any[]>([])
   const [editingQuestion, setEditingQuestion] = useState<any>(null)
   const [questionForm, setQuestionForm] = useState<any>({ type: 'mcq', text: '', prompt: '', sample_answer: '', multiple_correct: false, correct_boolean: true, points: 1, options: [{ text: '', is_correct: false }] })
   const [showQuizBuilder, setShowQuizBuilder] = useState(false)
+
+  // PDF upload states
+  const [pdfMode, setPdfMode] = useState<'url' | 'upload'>('url')
+  const [pdfUploading, setPdfUploading] = useState(false)
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+
+  // Video upload states
+  const [videoMode, setVideoMode] = useState<'url' | 'upload'>('url')
+  const [videoUploading, setVideoUploading] = useState(false)
+  const [videoFile, setVideoFile] = useState<File | null>(null)
 
   const load = async () => {
     if (!token) return
@@ -96,13 +106,35 @@ export default function CourseBuilderPage() {
   const resetForm = () => {
     setEditing(null)
     setForm({ type: 'text', title: '', duration_seconds: 0, payload: { body: '' } })
+    setPdfFile(null)
+    setPdfMode('url')
+    setVideoFile(null)
+    setVideoMode('url')
   }
 
   const onEdit = (c: Content) => {
     setEditing(c)
     if (c.type === 'text') setForm({ type: 'text', title: c.title || '', duration_seconds: c.duration_seconds || 0, payload: { body: c.payload?.body || '' } })
-    if (c.type === 'pdf') setForm({ type: 'pdf', title: c.title || '', duration_seconds: c.duration_seconds || 0, payload: { url: c.payload?.url || '' } })
-    if (c.type === 'video') setForm({ type: 'video', title: c.title || '', duration_seconds: c.duration_seconds || 0, payload: { url: c.payload?.url || '' } })
+    if (c.type === 'pdf') {
+      setForm({ type: 'pdf', title: c.title || '', duration_seconds: c.duration_seconds || 0, payload: { url: c.payload?.url || '' } })
+      // Set PDF mode based on URL (if it's from our uploads, show as uploaded, otherwise URL)
+      const url = c.payload?.url || ''
+      if (url.includes('/storage/uploads/')) {
+        setPdfMode('upload')
+      } else {
+        setPdfMode('url')
+      }
+    }
+    if (c.type === 'video') {
+      setForm({ type: 'video', title: c.title || '', duration_seconds: c.duration_seconds || 0, payload: { url: c.payload?.url || '' } })
+      // Set video mode based on URL
+      const url = c.payload?.url || ''
+      if (url.includes('/storage/uploads/')) {
+        setVideoMode('upload')
+      } else {
+        setVideoMode('url')
+      }
+    }
     if (c.type === 'quiz') setForm({ type: 'quiz', title: c.title || '', duration_seconds: c.duration_seconds || 0, payload: { quiz_id: c.payload?.quiz_id || '' } })
   }
 
@@ -257,21 +289,21 @@ export default function CourseBuilderPage() {
         <div className="bg-white border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-900">Content</h2>
-            <button onClick={resetForm} className="inline-flex items-center gap-2 h-8 px-2 rounded-md border"><Plus className="h-4 w-4"/> New</button>
+            <button onClick={resetForm} className="inline-flex items-center gap-2 h-8 px-2 rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 font-medium"><Plus className="h-4 w-4"/> New</button>
           </div>
           <div className="space-y-2 max-h-[420px] overflow-auto">
             {items.map((c: any) => (
-              <div key={c.id} className={`rounded-md border p-3 ${editing?.id === c.id ? 'border-emerald-500' : ''}`}>
-                <div className="text-xs uppercase text-slate-500">{c.type}</div>
-                <div className="text-slate-800">{c.title || '(no title)'}</div>
-                <div className="text-xs text-slate-500">{(c.duration_seconds||0)}s</div>
+              <div key={c.id} className={`rounded-md border p-3 ${editing?.id === c.id ? 'border-emerald-500 bg-emerald-50' : 'bg-slate-50'}`}>
+                <div className="text-xs uppercase text-slate-600 font-medium">{c.type}</div>
+                <div className="text-slate-900 font-medium">{c.title || '(no title)'}</div>
+                <div className="text-xs text-slate-600">{(c.duration_seconds||0)}s</div>
                 <div className="mt-2 flex items-center justify-end gap-2">
-                  <button onClick={()=>onEdit(c)} className="h-8 px-2 rounded-md border text-gray-900 hover:bg-gray-50">Edit</button>
-                  <button onClick={()=>onDelete(c)} className="h-8 px-2 rounded-md border text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4"/></button>
+                  <button onClick={()=>onEdit(c)} className="h-8 px-2 rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 font-medium">Edit</button>
+                  <button onClick={()=>onDelete(c)} className="h-8 px-2 rounded-md border border-red-300 bg-white text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4"/></button>
                 </div>
               </div>
             ))}
-            {items.length === 0 && <div className="text-sm text-slate-500">No content yet.</div>}
+            {items.length === 0 && <div className="text-sm text-slate-600">No content yet.</div>}
           </div>
         </div>
 
@@ -312,16 +344,337 @@ export default function CourseBuilderPage() {
             )}
 
             {form.type === 'pdf' && (
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">PDF URL</label>
-                <input className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" placeholder="https://..." value={form?.payload?.url || ''} onChange={(e)=>setForm({ ...form, payload: { ...(form.payload||{}), url: e.target.value } })} />
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <label className="block text-sm text-slate-600">PDF Source:</label>
+                  <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={()=>setPdfMode('url')}
+                      className={`px-3 py-2 text-sm font-medium ${pdfMode === 'url' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={()=>setPdfMode('upload')}
+                      className={`px-3 py-2 border-l text-sm font-medium ${pdfMode === 'upload' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+
+                {pdfMode === 'url' ? (
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">PDF URL</label>
+                    <input
+                      className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500"
+                      placeholder="https://example.com/document.pdf"
+                      value={form?.payload?.url || ''}
+                      onChange={(e)=>setForm({ ...form, payload: { ...(form.payload||{}), url: e.target.value } })}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="block text-sm text-slate-600 mb-1">Upload PDF File</label>
+
+                    {/* Show existing file info when editing */}
+                    {form?.payload?.url && !pdfFile && !pdfUploading && (
+                      <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div>
+                              <p className="text-sm font-medium text-blue-900">Current PDF File</p>
+                              <p className="text-xs text-blue-700">{form.payload.url.split('/').pop()}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={form.payload.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-700 underline"
+                            >
+                              View
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm('Remove this PDF file?')) {
+                                  setForm({ ...form, payload: { ...(form.payload||{}), url: '' } })
+                                  setPdfFile(null)
+                                }
+                              }}
+                              className="text-xs px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded border border-red-200"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file || !token) return
+
+                        setPdfFile(file)
+                        setPdfUploading(true)
+                        setError('')
+
+                        try {
+                          const formData = new FormData()
+                          formData.append('file', file)
+
+                          // Remove /api from the end of NEXT_PUBLIC_API_URL if it exists
+                          const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://api.quiz.test'
+                          const uploadUrl = `${baseUrl}/api/uploads`
+
+                          const response = await fetch(uploadUrl, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                            },
+                            body: formData,
+                          })
+
+                          if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}))
+                            throw new Error(errorData.message || `Upload failed: ${response.status}`)
+                          }
+
+                          const data = await response.json()
+                          setForm({ ...form, payload: { ...(form.payload||{}), url: data.url } })
+                        } catch (err: any) {
+                          console.error('PDF upload error:', err)
+                          setError(err.message || 'PDF upload failed')
+                          setPdfFile(null)
+                        } finally {
+                          setPdfUploading(false)
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {form?.payload?.url ? 'Upload a new file to replace the current one' : 'Choose a PDF file to upload'}
+                    </p>
+
+                    {pdfUploading && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
+                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        Uploading PDF...
+                      </div>
+                    )}
+                    {pdfFile && !pdfUploading && form?.payload?.url && (
+                      <div className="mt-2 text-sm text-green-600">
+                        ✓ {pdfFile.name} uploaded successfully
+                      </div>
+                    )}
+                    {error && !pdfUploading && (
+                      <div className="mt-2 text-sm text-red-600">
+                        ✗ {error}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* PDF Preview */}
+                {form?.payload?.url && (
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">PDF Preview</span>
+                      <a
+                        href={form.payload.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <iframe
+                      src={form.payload.url}
+                      className="w-full h-96 bg-white"
+                      title="PDF Preview"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
             {form.type === 'video' && (
-              <div>
-                <label className="block text-sm text-slate-600 mb-1">Video URL</label>
-                <input className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" placeholder="https://..." value={form?.payload?.url || ''} onChange={(e)=>setForm({ ...form, payload: { ...(form.payload||{}), url: e.target.value } })} />
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <label className="block text-sm text-slate-600">Video Source:</label>
+                  <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={()=>setVideoMode('url')}
+                      className={`px-3 py-2 text-sm font-medium ${videoMode === 'url' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      URL
+                    </button>
+                    <button
+                      type="button"
+                      onClick={()=>setVideoMode('upload')}
+                      className={`px-3 py-2 border-l text-sm font-medium ${videoMode === 'upload' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Upload File
+                    </button>
+                  </div>
+                </div>
+
+                {videoMode === 'url' ? (
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">Video URL</label>
+                    <input
+                      className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500"
+                      placeholder="https://example.com/video.mp4"
+                      value={form?.payload?.url || ''}
+                      onChange={(e)=>setForm({ ...form, payload: { ...(form.payload||{}), url: e.target.value } })}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="block text-sm text-slate-600 mb-1">Upload Video File</label>
+
+                    {/* Show existing file info when editing */}
+                    {form?.payload?.url && !videoFile && !videoUploading && (
+                      <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <div>
+                              <p className="text-sm font-medium text-blue-900">Current Video File</p>
+                              <p className="text-xs text-blue-700">{form.payload.url.split('/').pop()}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={form.payload.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-600 hover:text-blue-700 underline"
+                            >
+                              View
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm('Remove this video file?')) {
+                                  setForm({ ...form, payload: { ...(form.payload||{}), url: '' } })
+                                  setVideoFile(null)
+                                }
+                              }}
+                              className="text-xs px-2 py-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded border border-red-200"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <input
+                      type="file"
+                      accept="video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/x-flv,video/x-matroska,video/webm,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm"
+                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]
+                        if (!file || !token) return
+
+                        setVideoFile(file)
+                        setVideoUploading(true)
+                        setError('')
+
+                        try {
+                          const formData = new FormData()
+                          formData.append('file', file)
+
+                          // Remove /api from the end of NEXT_PUBLIC_API_URL if it exists
+                          const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://api.quiz.test'
+                          const uploadUrl = `${baseUrl}/api/uploads`
+
+                          const response = await fetch(uploadUrl, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                            },
+                            body: formData,
+                          })
+
+                          if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}))
+                            throw new Error(errorData.message || `Upload failed: ${response.status}`)
+                          }
+
+                          const data = await response.json()
+                          setForm({ ...form, payload: { ...(form.payload||{}), url: data.url } })
+                        } catch (err: any) {
+                          console.error('Video upload error:', err)
+                          setError(err.message || 'Video upload failed')
+                          setVideoFile(null)
+                        } finally {
+                          setVideoUploading(false)
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {form?.payload?.url ? 'Upload a new file to replace the current one' : 'Choose a video file to upload (MP4, MOV, AVI, etc. - max 50MB)'}
+                    </p>
+
+                    {videoUploading && (
+                      <div className="mt-2 flex items-center gap-2 text-sm text-blue-600">
+                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                        Uploading video...
+                      </div>
+                    )}
+                    {videoFile && !videoUploading && form?.payload?.url && (
+                      <div className="mt-2 text-sm text-green-600">
+                        ✓ {videoFile.name} uploaded successfully
+                      </div>
+                    )}
+                    {error && !videoUploading && (
+                      <div className="mt-2 text-sm text-red-600">
+                        ✗ {error}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Video Preview */}
+                {form?.payload?.url && (
+                  <div className="border border-gray-300 rounded-lg overflow-hidden">
+                    <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Video Preview</span>
+                      <a
+                        href={form.payload.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Open in new tab
+                      </a>
+                    </div>
+                    <video
+                      src={form.payload.url}
+                      controls
+                      className="w-full bg-black"
+                      style={{ maxHeight: '400px' }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                )}
               </div>
             )}
 
@@ -368,18 +721,18 @@ export default function CourseBuilderPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Quiz Title *</label>
-                        <input 
-                          className="h-10 w-full rounded-md border border-gray-300 px-3 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                          placeholder="Enter quiz title..." 
-                          value={newQuiz.title} 
-                          onChange={(e)=>setNewQuiz({...newQuiz, title: e.target.value})} 
+                        <input
+                          className="h-10 w-full rounded-md border border-gray-300 px-3 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                          placeholder="Enter quiz title..."
+                          value={newQuiz.title}
+                          onChange={(e)=>setNewQuiz({...newQuiz, title: e.target.value})}
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Difficulty</label>
-                        <select 
-                          className="h-10 w-full rounded-md border border-gray-300 px-3 text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                          value={newQuiz.difficulty || 'medium'} 
+                        <select
+                          className="h-10 w-full rounded-md border border-gray-300 px-3 text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                          value={newQuiz.difficulty || 'medium'}
                           onChange={(e)=>setNewQuiz({...newQuiz, difficulty: e.target.value})}
                         >
                           <option value="easy">Easy</option>
@@ -390,43 +743,43 @@ export default function CourseBuilderPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                      <textarea 
-                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                        rows={3} 
-                        placeholder="Describe your quiz..." 
-                        value={newQuiz.description} 
-                        onChange={(e)=>setNewQuiz({...newQuiz, description: e.target.value})} 
+                      <textarea
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        rows={3}
+                        placeholder="Describe your quiz..."
+                        value={newQuiz.description}
+                        onChange={(e)=>setNewQuiz({...newQuiz, description: e.target.value})}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Time Limit (minutes)</label>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max="180" 
-                        className="h-10 w-32 rounded-md border border-gray-300 px-3 text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" 
-                        value={Math.floor((newQuiz.timer_seconds || 1800) / 60)} 
-                        onChange={(e)=>setNewQuiz({...newQuiz, timer_seconds: Number(e.target.value) * 60})} 
+                      <input
+                        type="number"
+                        min="1"
+                        max="180"
+                        className="h-10 w-32 rounded-md border border-gray-300 px-3 text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        value={Math.floor((newQuiz.timer_seconds || 1800) / 60)}
+                        onChange={(e)=>setNewQuiz({...newQuiz, timer_seconds: Number(e.target.value) * 60})}
                       />
                       <span className="ml-2 text-sm text-gray-500">Default: 30 minutes</span>
                     </div>
                     <div className="flex items-center gap-3 pt-2">
-                      <button 
-                        type="button" 
-                        disabled={!token || !newQuiz.title} 
-                        className="h-10 px-4 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" 
+                      <button
+                        type="button"
+                        disabled={!token || !newQuiz.title}
+                        className="h-10 px-4 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         onClick={async()=>{
                           if (!token || !newQuiz.title) return
                           try {
-                            const created = await authAPI.createQuiz(token, { 
-                              title: newQuiz.title, 
-                              description: newQuiz.description, 
-                              difficulty: newQuiz.difficulty || 'medium', 
+                            const created = await authAPI.createQuiz(token, {
+                              title: newQuiz.title,
+                              description: newQuiz.description,
+                              difficulty: newQuiz.difficulty || 'medium',
                               timer_seconds: newQuiz.timer_seconds || 1800,
-                              visibility: 'public', 
-                              status: 'draft', 
-                              is_paid: false, 
-                              price_cents: 0 
+                              visibility: 'public',
+                              status: 'draft',
+                              is_paid: false,
+                              price_cents: 0
                             } as any)
                             const id = (created as any)?.id || (created as any)?.data?.id
                             if (id) {
@@ -448,8 +801,8 @@ export default function CourseBuilderPage() {
             )}
 
             <div className="flex items-center gap-2">
-              <button disabled={saving || !token} className="h-10 px-4 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50">{editing ? 'Update' : 'Add content'}</button>
-              {editing && <button type="button" onClick={resetForm} className="h-10 px-3 rounded-md border text-gray-900 hover:bg-gray-50">Cancel</button>}
+              <button disabled={saving || !token} className="h-10 px-4 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 font-medium">{editing ? 'Update' : 'Add content'}</button>
+              {editing && <button type="button" onClick={resetForm} className="h-10 px-3 rounded-md border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 font-medium">Cancel</button>}
             </div>
           </form>
         </div>
