@@ -41,13 +41,13 @@ export default function TiptapEditor({ value, onChange, placeholder, token }: Pr
       Placeholder.configure({ placeholder: placeholder || 'Write something…' }),
     ],
     content: value || '',
-    editorProps: { 
-      attributes: { 
-        class: 'max-w-none min-h-[160px] focus:outline-none ProseMirror p-3 rounded-md border',
+    editorProps: {
+      attributes: {
+        class: 'max-w-none min-h-[160px] focus:outline-none ProseMirror p-3 rounded-md border border-slate-300 bg-white text-slate-900 prose prose-slate',
         'data-testid': 'tiptap-editor'
-      } 
+      }
     },
-    onUpdate: ({ editor }) => { 
+    onUpdate: ({ editor }) => {
       try {
         onChange(editor.getHTML())
       } catch (error) {
@@ -141,7 +141,7 @@ function ToolbarButton({ onClick, active, children }: { onClick: () => void, act
     <button
       type="button"
       onClick={onClick}
-      className={`h-8 px-2 rounded-md border text-sm ${active ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : ''}`}
+      className={`h-8 px-2 rounded-md border text-sm font-medium transition-colors ${active ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-white text-slate-900 border-slate-300 hover:bg-slate-50'}`}
     >
       {children}
     </button>

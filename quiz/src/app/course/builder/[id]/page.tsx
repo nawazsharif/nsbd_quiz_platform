@@ -311,8 +311,8 @@ export default function CourseBuilderPage() {
           <h2 className="text-sm font-semibold text-slate-900 mb-3">{editing ? 'Edit Content' : 'Add Content'}</h2>
           <form onSubmit={onSubmitContent} className="space-y-3">
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Type</label>
-              <select className="h-10 w-full rounded-md border px-3 text-gray-900" value={form.type} onChange={(e)=>setForm({ ...form, type: e.target.value })}>
+              <label className="block text-sm font-medium text-slate-900 mb-1">Type</label>
+              <select className="h-10 w-full rounded-md border border-slate-300 px-3 text-slate-900 bg-white" value={form.type} onChange={(e)=>setForm({ ...form, type: e.target.value })}>
                 <option value="text">Text</option>
                 <option value="pdf">PDF</option>
                 <option value="video">Video</option>
@@ -322,18 +322,18 @@ export default function CourseBuilderPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Title</label>
-              <input className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} required />
+              <label className="block text-sm font-medium text-slate-900 mb-1">Title</label>
+              <input className="h-10 w-full rounded-md border border-slate-300 px-3 text-slate-900 placeholder-slate-400 bg-white" value={form.title} onChange={(e)=>setForm({...form, title: e.target.value})} required />
             </div>
 
             <div>
-              <label className="block text-sm text-slate-600 mb-1">Duration (seconds)</label>
-              <input type="number" min={0} className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500" value={form.duration_seconds} onChange={(e)=>setForm({...form, duration_seconds: Number(e.target.value)})} />
+              <label className="block text-sm font-medium text-slate-900 mb-1">Duration (seconds) <span className="text-slate-500 font-normal">(optional)</span></label>
+              <input type="number" min={0} className="h-10 w-full rounded-md border border-slate-300 px-3 text-slate-900 placeholder-slate-400 bg-white" value={form.duration_seconds || ''} onChange={(e)=>setForm({...form, duration_seconds: e.target.value ? Number(e.target.value) : 0})} placeholder="0" />
             </div>
 
             {form.type === 'text' && (
               <div>
-                <label className="block text-sm text-slate-600 mb-1">Body</label>
+                <label className="block text-sm font-medium text-slate-900 mb-1">Body</label>
                 <TiptapEditor
                   value={form?.payload?.body || ''}
                   onChange={(html) => setForm({ ...form, payload: { ...(form.payload||{}), body: html } })}
@@ -346,7 +346,7 @@ export default function CourseBuilderPage() {
             {form.type === 'pdf' && (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <label className="block text-sm text-slate-600">PDF Source:</label>
+                  <label className="block text-sm font-medium text-slate-900">PDF Source:</label>
                   <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                     <button
                       type="button"
@@ -367,9 +367,9 @@ export default function CourseBuilderPage() {
 
                 {pdfMode === 'url' ? (
                   <div>
-                    <label className="block text-sm text-slate-600 mb-1">PDF URL</label>
+                    <label className="block text-sm font-medium text-slate-900 mb-1">PDF URL</label>
                     <input
-                      className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500"
+                      className="h-10 w-full rounded-md border border-slate-300 px-3 text-slate-900 placeholder-slate-400 bg-white"
                       placeholder="https://example.com/document.pdf"
                       value={form?.payload?.url || ''}
                       onChange={(e)=>setForm({ ...form, payload: { ...(form.payload||{}), url: e.target.value } })}
@@ -377,7 +377,7 @@ export default function CourseBuilderPage() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <label className="block text-sm text-slate-600 mb-1">Upload PDF File</label>
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Upload PDF File</label>
 
                     {/* Show existing file info when editing */}
                     {form?.payload?.url && !pdfFile && !pdfUploading && (
@@ -421,7 +421,7 @@ export default function CourseBuilderPage() {
                     <input
                       type="file"
                       accept=".pdf,application/pdf"
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                      className="block w-full text-sm text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-white focus:outline-none hover:bg-slate-50"
                       onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (!file || !token) return
@@ -462,7 +462,7 @@ export default function CourseBuilderPage() {
                         }
                       }}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-slate-600 mt-1">
                       {form?.payload?.url ? 'Upload a new file to replace the current one' : 'Choose a PDF file to upload'}
                     </p>
 
@@ -487,9 +487,9 @@ export default function CourseBuilderPage() {
 
                 {/* PDF Preview */}
                 {form?.payload?.url && (
-                  <div className="border border-gray-300 rounded-lg overflow-hidden">
-                    <div className="bg-gray-100 px-3 py-2 border-b border-gray-300 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">PDF Preview</span>
+                  <div className="border border-slate-300 rounded-lg overflow-hidden">
+                    <div className="bg-slate-100 px-3 py-2 border-b border-slate-300 flex items-center justify-between">
+                      <span className="text-sm font-medium text-slate-900">PDF Preview</span>
                       <a
                         href={form.payload.url}
                         target="_blank"
@@ -512,7 +512,7 @@ export default function CourseBuilderPage() {
             {form.type === 'video' && (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <label className="block text-sm text-slate-600">Video Source:</label>
+                  <label className="block text-sm font-medium text-slate-900">Video Source:</label>
                   <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                     <button
                       type="button"
@@ -533,9 +533,9 @@ export default function CourseBuilderPage() {
 
                 {videoMode === 'url' ? (
                   <div>
-                    <label className="block text-sm text-slate-600 mb-1">Video URL</label>
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Video URL</label>
                     <input
-                      className="h-10 w-full rounded-md border px-3 text-gray-900 placeholder-gray-500"
+                      className="h-10 w-full rounded-md border border-slate-300 px-3 text-slate-900 placeholder-slate-400 bg-white"
                       placeholder="https://example.com/video.mp4"
                       value={form?.payload?.url || ''}
                       onChange={(e)=>setForm({ ...form, payload: { ...(form.payload||{}), url: e.target.value } })}
@@ -543,7 +543,7 @@ export default function CourseBuilderPage() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <label className="block text-sm text-slate-600 mb-1">Upload Video File</label>
+                    <label className="block text-sm font-medium text-slate-900 mb-1">Upload Video File</label>
 
                     {/* Show existing file info when editing */}
                     {form?.payload?.url && !videoFile && !videoUploading && (
@@ -587,7 +587,7 @@ export default function CourseBuilderPage() {
                     <input
                       type="file"
                       accept="video/mp4,video/quicktime,video/x-msvideo,video/x-ms-wmv,video/x-flv,video/x-matroska,video/webm,.mp4,.mov,.avi,.wmv,.flv,.mkv,.webm"
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none"
+                      className="block w-full text-sm text-slate-900 border border-slate-300 rounded-lg cursor-pointer bg-white focus:outline-none hover:bg-slate-50"
                       onChange={async (e) => {
                         const file = e.target.files?.[0]
                         if (!file || !token) return
@@ -628,7 +628,7 @@ export default function CourseBuilderPage() {
                         }
                       }}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-slate-600 mt-1">
                       {form?.payload?.url ? 'Upload a new file to replace the current one' : 'Choose a video file to upload (MP4, MOV, AVI, etc. - max 50MB)'}
                     </p>
 
