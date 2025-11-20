@@ -13,6 +13,8 @@
 - **Quiz Management**: Create, manage, and take quizzes with different question types
 - **Course Management**: Create and manage courses with content and progress tracking
 - **Wallet System**: Digital wallet for payments and withdrawals
+- **Transaction Logging**: Comprehensive transaction history and revenue analytics
+- **Revenue Analytics**: Track earnings for creators and platform revenue for admins
 - **Review System**: Rate and review quizzes and courses
 - **Bookmark System**: Bookmark favorite quizzes and courses
 - **Admin Features**: Approval workflows for content moderation
@@ -106,3 +108,36 @@ Example payload:
 ```
 
 After credentials are configured, wallet recharges initiated with `provider=sslcommerz` will return a `gateway_url` for the client to redirect the learner. Successful callbacks redirect learners back to the wallet screen when a frontend redirect target is configured, while the JSON payload remains available for programmatic integrations. Withdrawal approvals automatically call the SSLCommerz disbursement API when the withdrawal request uses `provider=sslcommerz` and includes destination account metadata.
+
+## Transaction Logging & Revenue Analytics
+
+The platform includes a comprehensive transaction logging and revenue analytics system that tracks all financial activities:
+
+### Features
+- **Complete Transaction History**: All wallet recharges, purchases, sales, and withdrawals are logged with detailed metadata
+- **Revenue Analytics for Creators**: Track earnings from quiz and course sales with detailed purchase logs
+- **Platform Revenue Tracking**: Admins can view all platform revenue broken down by source
+- **Individual Purchase Logs**: View who purchased each quiz or course with timestamps and amounts
+- **Advanced Filtering**: Filter transactions by type, status, date range, and direction (credit/debit)
+- **Summary Statistics**: Total recharges, purchases, sales, withdrawals, and net balance calculations
+
+### API Endpoints
+- `GET /api/transaction-logs` - List all transactions with filtering
+- `GET /api/transaction-logs/summary` - Get transaction summary statistics
+- `GET /api/revenue/platform` - Platform revenue (admin only)
+- `GET /api/revenue/platform/breakdown` - Revenue breakdown by source (admin only)
+- `GET /api/revenue/my-quizzes` - Creator's quiz revenue
+- `GET /api/revenue/my-courses` - Creator's course revenue
+- `GET /api/revenue/quiz/{quiz}/purchases` - Quiz purchase log (creator/admin)
+- `GET /api/revenue/course/{course}/purchases` - Course purchase log (creator/admin)
+
+### Documentation
+- **[Transaction Logging System](TRANSACTION_LOGGING_SYSTEM.md)** - Comprehensive documentation
+- **[Quick Reference Guide](TRANSACTION_LOGGING_QUICK_REFERENCE.md)** - Quick start guide
+- **[Architecture Diagram](ARCHITECTURE_DIAGRAM.md)** - Visual system architecture
+- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Implementation details
+
+### Access Control
+- **Regular Users**: View their own transaction history and summary
+- **Creators**: Track revenue from their quizzes and courses, view purchase logs
+- **Admins**: Access all transactions, platform revenue analytics, and system-wide statistics

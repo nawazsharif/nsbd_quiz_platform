@@ -21,13 +21,13 @@ class UploadController extends Controller
      * @OA\Post(
      *   path="/api/uploads",
      *   tags={"Uploads"},
-     *   summary="Upload an image",
+     *   summary="Upload an image, PDF, or video file",
      *   security={{"sanctum":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     @OA\MediaType(mediaType="multipart/form-data",
      *       @OA\Schema(
-     *         @OA\Property(property="file", type="string", format="binary", description="Image file to upload"),
+     *         @OA\Property(property="file", type="string", format="binary", description="Image, PDF, or video file to upload (max 50MB)"),
      *       )
      *     )
      *   ),
@@ -45,7 +45,7 @@ class UploadController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|image|mimes:jpeg,png,webp,gif|max:5120', // max 5MB
+            'file' => 'required|file|mimes:jpeg,png,webp,gif,pdf,mp4,mov,avi,wmv,flv,mkv,webm|max:51200', // max 50MB (images, PDFs, videos)
         ]);
 
         $file = $request->file('file');
@@ -61,4 +61,3 @@ class UploadController extends Controller
         ]);
     }
 }
-

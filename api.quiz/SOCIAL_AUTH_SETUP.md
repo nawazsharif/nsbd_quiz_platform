@@ -15,17 +15,17 @@ Add the following environment variables to your `.env` file:
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-GOOGLE_REDIRECT_URI=http://api.quiz.test/api/auth/social/google/callback
+GOOGLE_REDIRECT_URI=https://api.quiz.test/api/auth/social/google/callback
 
 # GitHub OAuth Configuration
 GITHUB_CLIENT_ID=your_github_client_id_here
 GITHUB_CLIENT_SECRET=your_github_client_secret_here
-GITHUB_REDIRECT_URI=http://api.quiz.test/api/auth/social/github/callback
+GITHUB_REDIRECT_URI=https://api.quiz.test/api/auth/social/github/callback
 
 # Facebook OAuth Configuration
 FACEBOOK_CLIENT_ID=your_facebook_app_id_here
 FACEBOOK_CLIENT_SECRET=your_facebook_app_secret_here
-FACEBOOK_REDIRECT_URI=http://api.quiz.test/api/auth/social/facebook/callback
+FACEBOOK_REDIRECT_URI=https://api.quiz.test/api/auth/social/facebook/callback
 ```
 
 ## OAuth App Setup
@@ -123,13 +123,13 @@ For mobile apps that handle OAuth flow themselves.
 1. Start the Laravel server: `php artisan serve`
 2. Test redirect endpoints:
    ```bash
-   curl -X GET "http://api.quiz.test/api/auth/social/google/redirect"
-   curl -X GET "http://api.quiz.test/api/auth/social/github/redirect"
-   curl -X GET "http://api.quiz.test/api/auth/social/facebook/redirect"
+   curl -X GET "https://api.quiz.test/api/auth/social/google/redirect"
+   curl -X GET "https://api.quiz.test/api/auth/social/github/redirect"
+   curl -X GET "https://api.quiz.test/api/auth/social/facebook/redirect"
    ```
 
 ## Swagger Documentation
 
-The API documentation is available at: `http://api.quiz.test/api/documentation`
+The API documentation is available at: `https://api.quiz.test/api/documentation`
 
 All social authentication endpoints are documented with examples and schemas.

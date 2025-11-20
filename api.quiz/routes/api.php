@@ -27,6 +27,9 @@ use App\Http\Controllers\Api\CourseBookmarkController;
 use App\Http\Controllers\Api\CourseEnrollmentController;
 use App\Http\Controllers\Api\QuizEnrollmentController;
 use App\Http\Controllers\Api\WalletTransactionController;
+use App\Http\Controllers\Api\TransactionLogController;
+use App\Http\Controllers\Api\RevenueAnalyticsController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\QuizAttemptController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -104,10 +107,10 @@ Route::apiResource('quizzes.questions', QuestionController::class);
 Route::apiResource('courses', CourseController::class);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('courses/{course}/contents', [CourseContentController::class, 'index']);
-Route::post('courses/{course}/contents', [CourseContentController::class, 'store']);
-Route::get('courses/{course}/contents/{content}', [CourseContentController::class, 'show']);
-Route::put('courses/{course}/contents/{content}', [CourseContentController::class, 'update']);
-Route::delete('courses/{course}/contents/{content}', [CourseContentController::class, 'destroy']);
+    Route::post('courses/{course}/contents', [CourseContentController::class, 'store']);
+    Route::get('courses/{course}/contents/{content}', [CourseContentController::class, 'show']);
+    Route::put('courses/{course}/contents/{content}', [CourseContentController::class, 'update']);
+    Route::delete('courses/{course}/contents/{content}', [CourseContentController::class, 'destroy']);
     Route::post('courses/{course}/submit', [CourseController::class, 'submit']);
 });
 
@@ -117,6 +120,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('wallet/recharge', [WalletController::class, 'recharge']);
     Route::post('wallet/recharge/confirm', [WalletController::class, 'confirm']);
     Route::get('wallet/transactions', [WalletTransactionController::class, 'index']);
+
+    // Transaction Logs (Enhanced)
+    Route::get('transaction-logs', [TransactionLogController::class, 'index']);
+    Route::get('transaction-logs/summary', [TransactionLogController::class, 'summary']);
+    Route::get('transaction-logs/{id}', [TransactionLogController::class, 'show']);
+
+    // Dashboard
+    Route::get('dashboard/stats', [DashboardController::class, 'getStats']);
+
+    // Revenue Analytics
+    Route::get('revenue/platform', [RevenueAnalyticsController::class, 'platformRevenue']);
+    Route::get('revenue/platform/breakdown', [RevenueAnalyticsController::class, 'platformRevenueBreakdown']);
+    Route::get('revenue/my-quizzes', [RevenueAnalyticsController::class, 'myQuizRevenue']);
+    Route::get('revenue/my-courses', [RevenueAnalyticsController::class, 'myCourseRevenue']);
+    Route::get('revenue/quiz/{quiz}/purchases', [RevenueAnalyticsController::class, 'quizPurchases']);
+    Route::get('revenue/course/{course}/purchases', [RevenueAnalyticsController::class, 'coursePurchases']);
 
     // Withdrawals
     Route::post('wallet/withdrawals', [WithdrawalController::class, 'requestWithdrawal']);

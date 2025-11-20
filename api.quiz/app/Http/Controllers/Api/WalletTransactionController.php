@@ -17,7 +17,7 @@ class WalletTransactionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = WalletTransaction::query()->orderByDesc('created_at');
+        $query = WalletTransaction::with('user:id,name,email')->orderByDesc('created_at');
 
         if (!$user->hasAnyRole(['admin', 'superadmin'])) {
             $query->where('user_id', $user->id);
@@ -39,6 +39,14 @@ class WalletTransactionController extends Controller
             }
         }
 
+        // Date range filter
+        if ($request->filled('from')) {
+            $query->where('created_at', '>=', $request->query('from'));
+        }
+        if ($request->filled('to')) {
+            $query->where('created_at', '<=', $request->query('to'));
+        }
+
         $perPage = (int) $request->query('per_page', 25);
         $perPage = min(max($perPage, 1), 100);
 
@@ -47,4 +55,3 @@ class WalletTransactionController extends Controller
         return response()->json($transactions, Response::HTTP_OK);
     }
 }
-
